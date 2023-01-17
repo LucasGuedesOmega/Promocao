@@ -23,8 +23,6 @@ CREATE TABLE IF NOT EXISTS empresa (
 CREATE TABLE IF NOT EXISTS usuarios (
 	id_usuario serial PRIMARY KEY,
 	username VARCHAR(200),
-	nome varchar(100),
-	cpf_cnpj varchar(14),
 	senha varchar(200),
 	e_mail varchar(200),
 	status boolean,
@@ -32,6 +30,14 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	id_empresa bigint,
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
 );
+
+CREATE TABLE IF NOT EXISTS historico_login(
+	id_historico_login serial PRIMARY KEY,
+	id_usuario bigint,
+	data_ultimo_login timestamp,
+	name_hardware varchar(30),
+	constraint fk_usuario foreign key (id_usuario) references usuarios(id_usuario)
+)
 
 CREATE TABLE IF NOT EXISTS produtos (
 	id_produto serial PRIMARY KEY, 
@@ -204,4 +210,21 @@ CREATE TABLE IF NOT EXISTS promocao_empresas (
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
 	CONSTRAINT fk_promocao FOREIGN KEY(id_promocao)  REFERENCES promocao(id_promocao),
 	CONSTRAINT fk_grupo_empresa FOREIGN KEY(id_grupo_empresa)  REFERENCES grupo_empresa(id_grupo_empresa)
+)
+
+CREATE TABLE IF NOT EXISTS total_valores_clientes (
+	id_total_valores_clientes serial PRIMARY KEY,
+	id_cliente bigint,
+	valor double precision,
+	tipo varchar(3),
+	constraint fk_cliente foreign key (id_cliente) references clientes(id_cliente)
+);
+
+CREATE TABLE IF NOT EXISTS historico_promocao (
+	id_historico serial PRIMARY KEY,
+	id_cliente bigint,
+	valor double precision,
+	valor_total_venda double precision,
+	data_emissao timestamp,
+	constraint fk_cliente foreign key (id_cliente) references clientes(id_cliente)
 )

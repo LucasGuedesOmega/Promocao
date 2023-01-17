@@ -1,4 +1,3 @@
-from distutils.spawn import find_executable
 from banco.conexao import Conecta
 import datetime
 import psycopg2
@@ -62,13 +61,17 @@ class Executa(Conecta):
         for retorno in retorno_list:
             key_list = retorno.keys()
 
-            if format_date:
+            if format_date and table != 'historico_table':
                 for key in key_list:
                     if type(retorno[key]) == datetime.datetime:
                         retorno[key] = self.format_date(retorno[key])
                     if type(retorno[key]) == datetime.time:
                         retorno[key] = self.format_time(retorno[key])
-
+            else:
+                for key in key_list:
+                    if type(retorno[key]) == datetime.datetime:
+                        retorno[key] = self.format_date(retorno[key]) + " " + self.format_time(retorno[key])       
+   
         return retorno_list
 
     def format_time(self, time):

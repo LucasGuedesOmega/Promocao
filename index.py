@@ -23,6 +23,8 @@ from controladores.usuarios import Usuario
 from controladores.buscar import Busca
 from controladores.promocao_empresa import PromocaoEmpresa
 from controladores.venda import Venda
+from controladores.historico_login import HistoricoLogin
+from banco.execucoes import Executa
 
 api = Flask(__name__)
 CORS(api, resources={r'/api/v1/*'})
@@ -86,14 +88,14 @@ def login():
         try:
             dados_list = request.get_json()
             for dados_dict in dados_list:
-                
+            
                 if dados_dict.get('username') and dados_dict.get('senha'):
-                    
+
                     dados_dict['username'] = dados_dict['username'].replace(" ", "")
                     dados_dict['senha'] = dados_dict['senha'].replace(" ", "")
 
                     usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])])
-                    
+
                     if usuario:
                         empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={int(usuario[0]['id_empresa'])}"])
                         payload = None
@@ -125,6 +127,19 @@ def login():
 
                         if payload:
                             token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
+
+                        if dados_dict.get("name_hardware"):
+                            data_historico = Executa().format_date(datetime.datetime.now()) + " " + Executa().format_time(datetime.datetime.now())
+
+                            dados_historico_list = [
+                                {
+                                    "data_ultimo_login": data_historico,
+                                    "id_usuario": usuario[0]['id_usuario'],
+                                    "name_hardware": dados_dict['name_hardware']
+                                }
+                            ]
+
+                            HistoricoLogin().insert_ou_update(dados_historico_list)
 
                         return jsonify({
                             "token": token
@@ -161,6 +176,16 @@ def promocao_empresas(auth):
         parametros_dict = request.args.to_dict()
 
         retorno = Busca().buscar(parametros_dict, auth, 'promocao_empresas')
+
+        return retorno
+
+@api.route('/api/v1/historico-login', methods=['GET'])
+def historico_login():
+    if request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = HistoricoLogin().buscar(parametros_dict)
 
         return retorno
 
@@ -464,4 +489,4 @@ def handle_exception(err):
     print(path)
 
 if __name__ == '__main__':
-    api.run(debug=True, host='192.168.1.30', port=5080)
+    api.run(debug=True, host='192.168.1.18', port=5080)

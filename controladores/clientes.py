@@ -8,7 +8,6 @@ class Cliente(Executa):
 
         try:
             for dados_dict in dados_list: 
-
                 dados_dict['cpf'] = ''.join(char for char in dados_dict['cpf'] if char.isalnum())
                 dados_dict['telefone'] = ''.join(char for char in dados_dict['telefone'] if char.isalnum())
                 
@@ -47,7 +46,8 @@ class Cliente(Executa):
                             "e_mail",
                             "telefone",
                             "status",
-                            "id_empresa"
+                            "id_empresa",
+                            'id_usuario'
                         ],
                         [
                             "'{}'".format(dados_dict['nome']),
@@ -56,11 +56,12 @@ class Cliente(Executa):
                             "'{}'".format(dados_dict['telefone']),
                             "{}".format(dados_dict['status']),
                             "{}".format(dados_dict['id_empresa']),
+                            "{}".format(dados_dict['id_usuario'])
                         ]   
                     )
 
             return {"Sucesso": "Cliente cadastrado com sucesso!"}, 200
 
         except Exception as e:
-            
-            return {"Error": "Parametros invalidos"}, 400
+            print(e)
+            return {"Error": f"Parametros invalidos {e}"}, 400

@@ -15,7 +15,7 @@ class Busca(Executa):
 
                 where_list = []
                 campos_list = None
-                
+
                 if chave_list and valor_list:
                     for num, chave_dict in enumerate(chave_list):
                         

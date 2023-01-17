@@ -12,9 +12,7 @@ class Voucher(Executa):
     def valida_codigo(self, dados_list, auth):
 
         lista_retorno = []
-
-        usuario_list = self.select('usuarios', ['*'], [f"id_usuario={auth['id_usuario']}"])
-
+        
         for dados_dict in dados_list:
             voucher_list = self.select('voucher',
                 [
@@ -30,7 +28,7 @@ class Voucher(Executa):
             if voucher_list:
                 voucher_dict = voucher_list[0]
 
-                promocao_list = self.select('promocao', ['*'], [f"id_promocao={voucher_list[0]['id_promocao']}"], None, False)            
+                promocao_list = self.select('promocao', ['*'], [f"id_promocao={voucher_list[0]['id_promocao']}"], None, False)          
                 produto_list = self.select('produtos', ['*'], [f"id_externo='{dados_dict['identificadorExternoProduto']}'"])
 
                 promocao_dict = promocao_list[0]
@@ -44,9 +42,17 @@ class Voucher(Executa):
                 if not expira_voucher and produto_list and verifica_empresa and verifica_datas and promocao_dict['status'] and verifica_forma_pagamento:
                     produto_dict = produto_list[0]
 
+                    cliente_dict = self.select('clientes', ['*'], [f"id_usuario={auth['id_usuario']}"])[0]
+
+                    self.insert_historico(dados_dict, calculo_dict, voucher_dict, cliente_dict)
+
                     placa = None
                     if dados_dict.get('placa'):
                         placa = dados_dict['placa']
+
+                    if voucher_dict['tipocodigo'] == 'CASHBACK':
+                        calculo_dict['desconto_unidade'] = 0
+                        calculo_dict['desconto'] = 0
 
                     dict_retorno = {
                         "codigoValidacao": dados_dict['codigoValidacao'],
@@ -55,10 +61,10 @@ class Voucher(Executa):
                         "valorDescontoTotal": calculo_dict['desconto'],
                         "valorVendaTotal": dados_dict['valorVenda'],
                         "quantidade": dados_dict['quantidade'],
-                        "nomeCliente": usuario_list[0]['nome'],
+                        "nomeCliente": cliente_dict['nome'],
                         "chaveAutenticacao": dados_dict['tokenIntegracao'],
                         "placa": placa,
-                        "cpf": usuario_list[0]['cpf_cnpj'],
+                        "cpf": cliente_dict['cpf'],
                         "isAceitaCPF": True,
                         "isEmiteDocumentoFiscal": True,
                         "parametroOpcional": None,
@@ -94,6 +100,7 @@ class Voucher(Executa):
 
                         self.venda_controller.insert_or_update(dados_venda_list)
                         self.update('voucher', ["usado=true"], [f"id_voucher={voucher_dict['id_voucher']}"])
+
                         lista_retorno.append(dict_retorno)
 
                 elif expira_voucher:
@@ -112,6 +119,22 @@ class Voucher(Executa):
                 return {'erros': ['Voucher incorreto.']}, 400
 
         return lista_retorno
+
+    def insert_historico(self, dados_dict, calculo_dict, voucher_dict, cliente_dict):
+        data_emissao = f"{dados_dict['dataVenda']} {dados_dict['horaVenda']}" 
+
+        if cliente_dict and calculo_dict['desconto'] > 0:
+            self.insert('historico_promocao', ['id_cliente', 'valor_total_venda','valor', 'data_emissao', 'tipo'], [str(cliente_dict['id_cliente']), str(dados_dict['valorVenda']), str(calculo_dict['desconto']), f"'{data_emissao}'", f"'{voucher_dict['tipocodigo']}'"])
+
+            where_total = [f"id_cliente={cliente_dict['id_cliente']}", f"tipo='{voucher_dict['tipocodigo']}'"]
+
+            total_cliente_list = self.select("total_valores_clientes", ['*'], where_total)
+
+            if total_cliente_list:
+                soma_desconto = total_cliente_list[0]['valor'] + calculo_dict['desconto']
+                self.update("total_valores_clientes", [f"valor={str(soma_desconto)}"], where_total)
+            else:
+                self.insert("total_valores_clientes", ["id_cliente", 'valor', 'tipo'], [str(cliente_dict['id_cliente']), str(calculo_dict['desconto']), f"'{voucher_dict['tipocodigo']}'"])
 
     def verifica_forma_pagamento(self, promocao, dados_dict):
         formas_pagamento_list = self.select('grupo_forma_pagamento',
