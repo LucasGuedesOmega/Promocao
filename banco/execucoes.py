@@ -42,7 +42,7 @@ class Executa(Conecta):
 
         else:
             query = 'SELECT {campos} from {tabela};'.format(campos = ','.join(fields_list), tabela = table)
-
+            
         try:
             self.cursor.execute(query)
         except psycopg2.errors.InFailedSqlTransaction:

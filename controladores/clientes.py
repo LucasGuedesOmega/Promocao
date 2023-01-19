@@ -8,58 +8,68 @@ class Cliente(Executa):
 
         try:
             for dados_dict in dados_list: 
-                dados_dict['cpf'] = ''.join(char for char in dados_dict['cpf'] if char.isalnum())
-                dados_dict['telefone'] = ''.join(char for char in dados_dict['telefone'] if char.isalnum())
-                
-                where_list = []
 
-                if dados_dict.get('id_cliente'):
-                    where_list.append("id_cliente={}".format(dados_dict['id_cliente']))
-                elif dados_dict.get('cpf') and not dados_dict.get('id_cliente'):
-                    where_list.append("cpf='{}'".format(dados_dict['cpf']))
+                is_cliente = False
 
-                cliente_list = self.select('clientes', 
-                    [
-                        "id_cliente"
-                    ],
-                    where_list  
-                )
+                dados_cliente = self.select('clientes', ['*'], [f"cpf='{dados_dict['cpf']}'"])
+                if dados_cliente:
+                    is_cliente = True
+                    
+                if not is_cliente:
+                    dados_dict['cpf'] = ''.join(char for char in dados_dict['cpf'] if char.isalnum())
+                    dados_dict['telefone'] = ''.join(char for char in dados_dict['telefone'] if char.isalnum())
+                    
+                    where_list = []
 
-                if cliente_list:
-                    self.update('clientes',
+                    if dados_dict.get('id_cliente'):
+                        where_list.append("id_cliente={}".format(dados_dict['id_cliente']))
+                    elif dados_dict.get('cpf') and not dados_dict.get('id_cliente'):
+                        where_list.append("cpf='{}'".format(dados_dict['cpf']))
+
+                    cliente_list = self.select('clientes', 
                         [
-                            "nome='{}'".format(dados_dict['nome']),
-                            "e_mail='{}'".format(dados_dict['e_mail']),
-                            "telefone='{}'".format(dados_dict['telefone']),
-                            "status={}".format(dados_dict['status']),
-                            "cpf='{}'".format(dados_dict['cpf']),
+                            "id_cliente"
                         ],
                         where_list  
                     )
-                
+
+                    if cliente_list:
+                        self.update('clientes',
+                            [
+                                "nome='{}'".format(dados_dict['nome']),
+                                "e_mail='{}'".format(dados_dict['e_mail']),
+                                "telefone='{}'".format(dados_dict['telefone']),
+                                "status={}".format(dados_dict['status']),
+                                "cpf='{}'".format(dados_dict['cpf']),
+                            ],
+                            where_list  
+                        )
+                    
+                    else:
+
+                        self.insert('clientes',
+                            [
+                                "nome",
+                                "cpf",
+                                "e_mail",
+                                "telefone",
+                                "status",
+                                "id_empresa",
+                                'id_usuario'
+                            ],
+                            [
+                                "'{}'".format(dados_dict['nome']),
+                                "'{}'".format(dados_dict['cpf']),
+                                "'{}'".format(dados_dict['e_mail']),
+                                "'{}'".format(dados_dict['telefone']),
+                                "{}".format(dados_dict['status']),
+                                "{}".format(dados_dict['id_empresa']),
+                                "{}".format(dados_dict['id_usuario'])
+                            ]   
+                        )
                 else:
-
-                    self.insert('clientes',
-                        [
-                            "nome",
-                            "cpf",
-                            "e_mail",
-                            "telefone",
-                            "status",
-                            "id_empresa",
-                            'id_usuario'
-                        ],
-                        [
-                            "'{}'".format(dados_dict['nome']),
-                            "'{}'".format(dados_dict['cpf']),
-                            "'{}'".format(dados_dict['e_mail']),
-                            "'{}'".format(dados_dict['telefone']),
-                            "{}".format(dados_dict['status']),
-                            "{}".format(dados_dict['id_empresa']),
-                            "{}".format(dados_dict['id_usuario'])
-                        ]   
-                    )
-
+                    return {"Error": f"Cliente já cadastrado"}, 400
+                    
             return {"Sucesso": "Cliente cadastrado com sucesso!"}, 200
 
         except Exception as e:

@@ -20,17 +20,6 @@ CREATE TABLE IF NOT EXISTS empresa (
 	CONSTRAINT fk_grupo_empresas FOREIGN KEY (id_grupo_empresa) REFERENCES grupo_empresa(id_grupo_empresa)
 );
 
-CREATE TABLE IF NOT EXISTS usuarios (
-	id_usuario serial PRIMARY KEY,
-	username VARCHAR(200),
-	senha varchar(200),
-	e_mail varchar(200),
-	status boolean,
-	user_admin boolean,
-	id_empresa bigint,
-	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
-);
-
 CREATE TABLE IF NOT EXISTS historico_login(
 	id_historico_login serial PRIMARY KEY,
 	id_usuario bigint,
@@ -64,7 +53,9 @@ CREATE TABLE IF NOT EXISTS clientes (
 	telefone varchar(20),
 	status boolean,
 	id_empresa bigint,
+	id_grupo_empresa bigint
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
+	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_empresa)
 );
 
 CREATE TABLE IF NOT EXISTS forma_pagamento (
@@ -227,4 +218,54 @@ CREATE TABLE IF NOT EXISTS historico_promocao (
 	valor_total_venda double precision,
 	data_emissao timestamp,
 	constraint fk_cliente foreign key (id_cliente) references clientes(id_cliente)
+)
+
+CREATE TABLE IF NOT EXISTS confirma_email (
+	id_confirma_email serial PRIMARY KEY,
+	id_usuario bigint,
+	codigo varchar(7),
+	data timestamp,
+	CONSTRAINT fk_usuario FOREIGN KEY(id_usuario)  REFERENCES usuarios(id_usuario)
+)
+
+CREATE TABLE IF NOT EXISTS usuarios (
+	id_usuario serial PRIMARY KEY,
+	username VARCHAR(200),
+	senha varchar(200),
+	e_mail varchar(200),
+	status boolean,
+	user_admin boolean,
+	user_app boolean,
+	user_app_porta boolean,
+	id_empresa bigint,
+	id_grupo_empresa bigint,
+	id_grupo_usuario bigint.
+	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_grupo_usuario)
+	constraint fk_grupo_usuario foreign key (id_grupo_usuario) references grupo_usuario(id_grupo_usuario)
+	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
+);
+
+CREATE TABLE IF NOT EXISTS grupo_usuario (
+	id_grupo_usuario serial PRIMARY KEY,
+	nome varchar(50),
+	id_permissao bigint,
+	CONSTRAINT fk_permissao FOREIGN KEY(id_permissao)  REFERENCES permissao(id_permissao)
+)
+
+CREATE TABLE IF NOT EXISTS permissao (
+	id_permissao serial PRIMARY KEY,
+	nome varchar(50)
+)
+
+CREATE TABLE IF NOT EXISTS permissao_tela (
+	id_permissao_tela serial PRIMARY KEY,
+	id_permissao bigint,
+	id_tela bigint,
+	CONSTRAINT fk_permissao FOREIGN KEY(id_permissao)  REFERENCES permissao(id_permissao)
+	CONSTRAINT fk_tela FOREIGN KEY(id_telas)  REFERENCES tela(id_tela)
+)
+
+CREATE TABLE IF NOT EXISTS tela (
+	id_tela serial PRIMARY KEY,
+	nome varchar(50)
 )

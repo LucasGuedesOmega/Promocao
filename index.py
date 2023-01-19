@@ -25,8 +25,22 @@ from controladores.promocao_empresa import PromocaoEmpresa
 from controladores.venda import Venda
 from controladores.historico_login import HistoricoLogin
 from banco.execucoes import Executa
+from controladores.envia_emails import EnviaEmail
+
+from flask_mail import Mail
 
 api = Flask(__name__)
+mail = Mail(api)
+
+api.config['MAIL_SERVER'] = 'smtp-mail.outlook.com'
+api.config['MAIL_PORT'] = '587'
+api.config['MAIL_USERNAME'] = 'lucas_guidolinguedes@outlook.com'
+api.config['MAIL_PASSWORD'] = 'lucasgg21121998'
+api.config['MAIL_USE_TLS'] = True
+api.config['MAIL_USE_SSL'] = False
+
+mail = Mail(api)
+
 CORS(api, resources={r'/api/v1/*'})
 SECRET_KEY = os.urandom(12).hex()
 api.config['SECRET_KEY'] = SECRET_KEY
@@ -70,6 +84,7 @@ def autenticar_api(f):
             }, 400
         except jwt.exceptions.InvalidSignatureError:
             return {'erros': ['Sem conexao com a api ou falta fazer login.']}, 400
+
         except Exception as e:
             print(e)
             return {
@@ -94,9 +109,11 @@ def login():
                     dados_dict['username'] = dados_dict['username'].replace(" ", "")
                     dados_dict['senha'] = dados_dict['senha'].replace(" ", "")
 
-                    usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])])
-
-                    if usuario:
+                    usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa', 'user_app'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])])
+                    
+                    confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario='{usuario[0]['id_usuario']}'"])
+                    print(confirma_email_list)
+                    if usuario and not confirma_email_list:
                         empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={int(usuario[0]['id_empresa'])}"])
                         payload = None
                         if dados_dict['tipo'] == "app":
@@ -141,11 +158,24 @@ def login():
 
                             HistoricoLogin().insert_ou_update(dados_historico_list)
 
+                        if usuario[0]['user_admin']:
+                            return jsonify({
+                                "token": token
+                            })
+
+                        if usuario[0]['user_app'] == True and dados_dict['tipo'] == 'portal':
+                            return jsonify({"Error": "não autorizado"}), 400
+                        
+                        if usuario[0]['user_app'] == False and dados_dict['tipo'] == 'app':
+                            return jsonify({"Error": "não autorizado"}), 400
+
                         return jsonify({
                             "token": token
                         })
-                    else:
+                    elif not usuario:
                         return jsonify({"Error": "Username ou Senha inválidos."}), 400
+                    elif confirma_email_list:
+                        return jsonify({"Error": "Email não confirmado."}), 400
 
                 elif dados_dict.get('username') and not dados_dict.get('senha'):
                     return jsonify({"Error": "Informe uma senha."}), 400
@@ -221,9 +251,8 @@ def login_token(auth):
                 "error": str(e)
             }, 500
 
-@api.route('/api/v1/usuario', methods=['GET', 'POST'])
-@autenticar_api
-def usuarios(auth):
+@api.route('/api/v1/usuario', methods=['POST'])
+def post_usuarios():
     if request.method == 'POST':
 
         dados_list = request.get_json()
@@ -232,7 +261,10 @@ def usuarios(auth):
 
         return retorno
 
-    elif request.method == 'GET':
+@api.route('/api/v1/usuario', methods=['GET'])
+@autenticar_api
+def get_usuarios(auth):
+    if request.method == 'GET':
 
         parametros_dict = request.args.to_dict()
 
@@ -259,9 +291,8 @@ def produtos(auth):
 
         return retorno
 
-@api.route('/api/v1/cliente', methods=['GET', 'POST'])
-@autenticar_api
-def cliente(auth):
+@api.route('/api/v1/cliente', methods=['POST'])
+def post_cliente():
     if request.method == 'POST':
 
         dados_list = request.get_json()
@@ -270,7 +301,10 @@ def cliente(auth):
 
         return retorno
 
-    elif request.method == 'GET':
+@api.route('/api/v1/cliente', methods=['POST'])
+@autenticar_api
+def get_cliente(auth):
+    if request.method == 'GET':
 
         parametros_dict = request.args.to_dict()
 
@@ -479,6 +513,25 @@ def grupo_forma_pagamento(auth):
         parametros_dict = request.args.to_dict()
 
         retorno = Busca().buscar(parametros_dict, auth, 'grupo_forma_pagamento')
+
+        return retorno
+
+@api.route('/api/v1/envia-email', methods=['POST'])
+def envia_email():
+    if request.method == 'POST':
+        
+        dados_list = request.get_json()
+
+        retorno = EnviaEmail(mail).envia_email(dados_list)
+
+        return retorno
+
+@api.route('/api/v1/confirma-email', methods=['POST'])
+def confirma_email():
+    if request.method == 'POST':
+        dados_list = request.get_json()
+
+        retorno = EnviaEmail(mail).confirmacao_codigo(dados_list)
 
         return retorno
 
