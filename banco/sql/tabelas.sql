@@ -236,10 +236,10 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	status boolean,
 	user_admin boolean,
 	user_app boolean,
-	user_app_porta boolean,
+	user_app_portal boolean,
 	id_empresa bigint,
 	id_grupo_empresa bigint,
-	id_grupo_usuario bigint.
+	id_grupo_usuario bigint,
 	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_grupo_usuario)
 	constraint fk_grupo_usuario foreign key (id_grupo_usuario) references grupo_usuario(id_grupo_usuario)
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
@@ -269,3 +269,14 @@ CREATE TABLE IF NOT EXISTS tela (
 	id_tela serial PRIMARY KEY,
 	nome varchar(50)
 )
+
+-- INSERIR TELAS
+INSERT INTO tela(nome) values ('DASHBOARD');
+INSERT INTO tela(nome) values ('CLIENTE');
+INSERT INTO tela(nome) values ('PRODUTO');
+INSERT INTO tela(nome) values ('PROMOCAO');
+INSERT INTO tela(nome) values ('GRUPO_PAGAMENTO');
+INSERT INTO tela(nome) values ('GRUPO_EMPRESA');
+INSERT INTO tela(nome) values ('SUPER_USUARIO');
+INSERT INTO tela(nome) values ('GRUPO_USUARIO');
+INSERT INTO tela(nome) values ('PERMISSAO');

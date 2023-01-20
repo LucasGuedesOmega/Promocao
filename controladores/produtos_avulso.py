@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
 
 class ProdutoAvulso(Executa):

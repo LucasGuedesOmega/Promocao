@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import psycopg2 as db
 from psycopg2.extras import DictCursor
 class Conecta:

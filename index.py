@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from flask import Flask, request, jsonify, abort, current_app
 import os
 from flask_cors import CORS
@@ -24,8 +25,12 @@ from controladores.buscar import Busca
 from controladores.promocao_empresa import PromocaoEmpresa
 from controladores.venda import Venda
 from controladores.historico_login import HistoricoLogin
-from banco.execucoes import Executa
 from controladores.envia_emails import EnviaEmail
+from controladores.permissao import Permissao
+from controladores.permissao_tela import PermissaoTela
+from controladores.grupo_usuario import GrupoUsuario
+
+from banco.execucoes import Executa
 
 from flask_mail import Mail
 
@@ -272,6 +277,74 @@ def get_usuarios(auth):
 
         return retorno
 
+@api.route('/api/v1/grupo-usuario', methods=['GET', 'POST'])
+@autenticar_api
+def grupo_usuario(auth):
+    if request.method == 'POST':
+
+        dados_list = json.loads(request.data.decode('ISO 8859-1')) 
+  
+        retorno = GrupoUsuario().insert_ou_update(dados_list, auth)
+
+        return jsonify(retorno)
+
+    elif request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = Busca().buscar(parametros_dict, auth, 'grupo_usuario')
+
+        return retorno
+
+@api.route('/api/v1/permissao', methods=['GET', 'POST'])
+@autenticar_api
+def permissao(auth):
+    if request.method == 'POST':
+
+        dados_list = json.loads(request.data.decode('ISO 8859-1')) 
+  
+        retorno = Permissao().insert_ou_update(dados_list, auth)
+
+        return jsonify(retorno)
+
+    elif request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = Busca().buscar(parametros_dict, auth, 'permissao')
+
+        return retorno
+
+@api.route('/api/v1/permissao-tela', methods=['GET', 'POST'])
+@autenticar_api
+def permissao_tela(auth):
+    if request.method == 'POST':
+
+        dados_list = json.loads(request.data.decode('ISO 8859-1')) 
+  
+        retorno = PermissaoTela().insert_ou_update(dados_list, auth)
+
+        return jsonify(retorno)
+
+    elif request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = Busca().buscar(parametros_dict, auth, 'permissao_tela')
+
+        return retorno
+
+@api.route('/api/v1/tela', methods=['GET'])
+@autenticar_api
+def telas(auth):
+    if request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = Busca().buscar(parametros_dict, auth, 'tela')
+
+        return retorno
+
 @api.route('/api/v1/integracao/produto/lista', methods=['GET', 'POST'])
 @autenticar_api
 def produtos(auth):
@@ -301,7 +374,7 @@ def post_cliente():
 
         return retorno
 
-@api.route('/api/v1/cliente', methods=['POST'])
+@api.route('/api/v1/cliente', methods=['GET'])
 @autenticar_api
 def get_cliente(auth):
     if request.method == 'GET':

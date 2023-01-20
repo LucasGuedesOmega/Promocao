@@ -1,4 +1,4 @@
-import psycopg2
+# -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
 
 class Promocao(Executa):
@@ -69,10 +69,6 @@ class Promocao(Executa):
                     last_promocao_list = self.select('promocao', ['id_promocao'], ['id_promocao=(select max(id_promocao) from promocao)'])
                   
                     return {'Sucesso': 'Promoções cadastradas ou alteradas com sucesso!', 'id': last_promocao_list[0]['id_promocao']}, 200
-
-        except psycopg2.errors.ForeignKeyViolation as e:
-
-            return {"Error": "Algo deu errado, revise seu cadastro"}, 400
 
         except Exception as e:
             

@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
 from flask_mail import Message
 import jinja2

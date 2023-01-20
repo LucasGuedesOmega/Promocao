@@ -1,4 +1,4 @@
-from tkinter import E
+# -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
 
 class PromocaoItem(Executa):
