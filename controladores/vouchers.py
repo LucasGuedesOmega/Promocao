@@ -15,7 +15,7 @@ class Voucher(Executa):
         lista_retorno = []
         
         for dados_dict in dados_list:
-            voucher_list = self.select('voucher',
+            voucher_dict = self.select('voucher',
                 [
                     '*'
                 ],
@@ -23,16 +23,14 @@ class Voucher(Executa):
                     "codigo_voucher='{}'".format(dados_dict['codigoValidacao'])
                 ],
                 None,
-                False
+                False,
+                registro_unico=True
             )
             
-            if voucher_list:
-                voucher_dict = voucher_list[0]
+            if voucher_dict:
 
-                promocao_list = self.select('promocao', ['*'], [f"id_promocao={voucher_list[0]['id_promocao']}"], None, False)          
-                produto_list = self.select('produtos', ['*'], [f"id_externo='{dados_dict['identificadorExternoProduto']}'"])
-
-                promocao_dict = promocao_list[0]
+                promocao_dict = self.select('promocao', ['*'], [f"id_promocao={voucher_dict['id_promocao']}"], None, False, registro_unico=True)          
+                produto_dict = self.select('produtos', ['*'], [f"id_externo='{dados_dict['identificadorExternoProduto']}'"], registro_unico=True)
 
                 expira_voucher = self.compara_datas_voucher(voucher_dict)
                 calculo_dict = self.calcula_desconto(dados_dict, promocao_dict)
@@ -40,10 +38,9 @@ class Voucher(Executa):
                 verifica_datas = self.verifica_datas(promocao_dict)
                 verifica_forma_pagamento = self.verifica_forma_pagamento(promocao_dict, dados_dict)
 
-                if not expira_voucher and produto_list and verifica_empresa and verifica_datas and promocao_dict['status'] and verifica_forma_pagamento:
-                    produto_dict = produto_list[0]
+                if not expira_voucher and produto_dict and verifica_empresa and verifica_datas and promocao_dict['status'] and verifica_forma_pagamento:
 
-                    cliente_dict = self.select('clientes', ['*'], [f"id_usuario={auth['id_usuario']}"])[0]
+                    cliente_dict = self.select('clientes', ['*'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
 
                     self.insert_historico(dados_dict, calculo_dict, voucher_dict, cliente_dict)
 
@@ -70,13 +67,13 @@ class Voucher(Executa):
                         "isEmiteDocumentoFiscal": True,
                         "parametroOpcional": None,
                         "identificadorExternoProduto": dados_dict['identificadorExternoProduto'],
-                        "tipoCodigo": voucher_list[0]['tipocodigo'],
+                        "tipoCodigo": voucher_dict['tipocodigo'],
                         "formaPagamento": dados_dict['descricaoFormaPagamento']
                     }
 
-                    empresa_list = self.select('empresa', ['*'], [f"cnpj='{dados_dict['codigoEmpresa']}'"])
+                    empresa_dict = self.select('empresa', ['*'], [f"cnpj='{dados_dict['codigoEmpresa']}'"], registro_unico=True)
                     
-                    if empresa_list:
+                    if empresa_dict:
                         dados_venda_list = [
                             {
                                 'id_produto': produto_dict['id_produto'],
@@ -91,7 +88,7 @@ class Voucher(Executa):
                                 "id_forma_pagamento": 'null',
                                 "contigencia": False,
                                 "id_promocao": promocao_dict['id_promocao'],
-                                "id_empresa": empresa_list[0]['id_empresa'],
+                                "id_empresa": empresa_dict['id_empresa'],
                                 "id_usuario": auth['id_usuario'],
                                 "status_venda": "EMITIDA",
                                 "descricao_forma_pagamento": dados_dict['descricaoFormaPagamento'],
@@ -106,7 +103,7 @@ class Voucher(Executa):
 
                 elif expira_voucher:
                     return {'erros': ['Voucher Expirado ou ja usado anteriormente.']}, 400
-                elif not produto_list:
+                elif not produto_dict:
                     return {'erros': ['O produto selecionado para venda nao e o mesmo do voucher.']}, 400
                 elif not verifica_empresa:
                     return {'erros': ['Empresa nao esta na promocao.']}, 400
@@ -129,10 +126,10 @@ class Voucher(Executa):
 
             where_total = [f"id_cliente={cliente_dict['id_cliente']}", f"tipo='{voucher_dict['tipocodigo']}'"]
 
-            total_cliente_list = self.select("total_valores_clientes", ['*'], where_total)
+            total_cliente_dict = self.select("total_valores_clientes", ['*'], where_total, registro_unico=True)
 
-            if total_cliente_list:
-                soma_desconto = total_cliente_list[0]['valor'] + calculo_dict['desconto']
+            if total_cliente_dict:
+                soma_desconto = total_cliente_dict['valor'] + calculo_dict['desconto']
                 self.update("total_valores_clientes", [f"valor={str(soma_desconto)}"], where_total)
             else:
                 self.insert("total_valores_clientes", 
@@ -173,7 +170,7 @@ class Voucher(Executa):
         promocao_empresas_list = self.select('promocao_empresas', ['*'], [f"id_promocao={promocao['id_promocao']}"])
 
         for promocao_empresas_dict in promocao_empresas_list:
-            empresa_dict = self.select('empresa', ['*'], [f"id_empresa={promocao_empresas_dict['id_empresa']}"])[0]
+            empresa_dict = self.select('empresa', ['*'], [f"id_empresa={promocao_empresas_dict['id_empresa']}"], registro_unico=True)
 
             if empresa_dict['cnpj'] == cnpj_dados_autosystem:
                 return True
@@ -218,9 +215,10 @@ class Voucher(Executa):
         try:
             codigo_voucher = random.randint(11111, 999999)
  
-            voucher_list = self.select('voucher', 
+            voucher_dict = self.select('voucher', 
                 ['id_voucher'],
-                ['id_usuario={}'.format(auth['id_usuario'])]
+                ['id_usuario={}'.format(auth['id_usuario'])],
+                registro_unico=True
             )
 
             data_ini = datetime.now()
@@ -230,7 +228,7 @@ class Voucher(Executa):
             else: 
                 dados_dict['usado'] = 'true'
 
-            if voucher_list:
+            if voucher_dict:
                 self.update('voucher', 
                     [
                         "codigo_voucher='{}'".format(codigo_voucher), "data_ini='{}'".format(data_ini),
@@ -238,7 +236,7 @@ class Voucher(Executa):
                         "id_empresa={}".format(dados_dict['id_empresa']), "id_usuario={}".format(auth['id_usuario']),
                         "tipoCodigo='{}'".format(dados_dict['tipoCodigo']), "usado={}".format(dados_dict['usado'])
                     ],
-                    ["id_voucher={}".format(voucher_list[0]['id_voucher'])]
+                    ["id_voucher={}".format(voucher_dict['id_voucher'])]
                 )
             
             else:
@@ -268,5 +266,4 @@ class Voucher(Executa):
             return {"Voucher": codigo_voucher}
 
         except Exception as e:
-            print(e)
             return {"Error": "Parametros invalidos."}

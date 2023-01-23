@@ -47,9 +47,9 @@ class Permissao(Executa):
                         ]
                     )
 
-                    last_permissao = self.select('permissao', ['id_permissao'], ['id_permissao=(select max(id_permissao) from permissao)'])
+                    last_permissao = self.select('permissao', ['id_permissao'], ['id_permissao=(select max(id_permissao) from permissao)'], registro_unico=True)
 
-                    return {"Sucesso": "Permissao inserida ou alterada com sucesso.", 'id': last_permissao[0]['id_permissao']}, 200
+                    return {"Sucesso": "Permissao inserida ou alterada com sucesso.", 'id': last_permissao['id_permissao']}, 200
 
         except Exception as e:
             

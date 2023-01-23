@@ -12,7 +12,7 @@ class Executa(Conecta):
 
         self.cursor = self.conectar()
       
-    def select(self, table=str, fields_list=list, where_list=None, join_list=None, format_date=True):
+    def select(self, table=str, fields_list=list, where_list=None, join_list=None, format_date=True, registro_unico=False):
         '''
             Constrói o select e executa o mesmo. 
         '''
@@ -72,7 +72,10 @@ class Executa(Conecta):
                 for key in key_list:
                     if type(retorno[key]) == datetime.datetime:
                         retorno[key] = self.format_date(retorno[key]) + " " + self.format_time(retorno[key])       
-   
+
+        if registro_unico and len(retorno_list) == 1:
+            return retorno_list[0]
+
         return retorno_list
 
     def format_time(self, time):

@@ -69,7 +69,7 @@ def autenticar_api(f):
             }, 401
         try:
             data=jwt.decode(token, b64decode(current_app.config["SECRET_KEY"]), algorithms=["HS256"])
-            current_user = Usuario().select('usuarios', ['*'], ["id_usuario={}".format(data['id_usuario'])])
+            current_user = Usuario().select('usuarios', ['*'], ["id_usuario={}".format(data['id_usuario'])], registro_unico=True)
             if current_user is None:
                 print('token invalido')
                 return {
@@ -77,7 +77,7 @@ def autenticar_api(f):
                     "data": None,
                     "error": "não autorizado"
                 }, 401
-            if not current_user[0]["status"]:
+            if not current_user["status"]:
                 print('status')
                 abort(403)
         except jwt.exceptions.ExpiredSignatureError:
@@ -98,7 +98,7 @@ def autenticar_api(f):
                 "error": str(e)
             }, 500
 
-        return f(current_user[0], *args, **kwargs)
+        return f(current_user, *args, **kwargs)
 
     return decorated
 
@@ -114,37 +114,37 @@ def login():
                 dados_dict['username'] = dados_dict['username'].replace(" ", "")
                 dados_dict['senha'] = dados_dict['senha'].replace(" ", "")
 
-                usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa', 'user_app', 'id_grupo_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])])
+                usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa', 'user_app', 'id_grupo_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])], registro_unico=True)
                 
-                confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario='{usuario[0]['id_usuario']}'"])
+                confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario='{usuario['id_usuario']}'"], registro_unico=True)
            
-                if usuario and not confirma_email_list and not usuario[0]['user_admin']:
-                    empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={int(usuario[0]['id_empresa'])}"])
+                if usuario and not confirma_email_list and not usuario['user_admin']:
+                    empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={int(usuario['id_empresa'])}"], registro_unico=True)
                     payload = None
                     if dados_dict['tipo'] == "app":
                         payload = {
-                            "id_usuario": int(usuario[0]['id_usuario']),
-                            "id_empresa": int(usuario[0]['id_empresa']),
-                            "id_grupo_empresa": int(empresa[0]['id_grupo_empresa']),
+                            "id_usuario": int(usuario['id_usuario']),
+                            "id_empresa": int(usuario['id_empresa']),
+                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
                             "iat": (time.mktime(datetime.datetime.now().timetuple())),
                             "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(days=30)).timetuple())),
-                            "admin": usuario[0]['user_admin']
+                            "admin": usuario['user_admin']
                         }
                     elif dados_dict['tipo'] == 'consumidor':
                         payload = {
-                            "id_usuario": int(usuario[0]['id_usuario']),
-                            "id_empresa": int(usuario[0]['id_empresa']),
-                            "id_grupo_empresa": int(empresa[0]['id_grupo_empresa']),
-                            "admin": usuario[0]['user_admin']
+                            "id_usuario": int(usuario['id_usuario']),
+                            "id_empresa": int(usuario['id_empresa']),
+                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                            "admin": usuario['user_admin']
                         }
                     else:
                         payload = {
-                            "id_usuario": int(usuario[0]['id_usuario']),
-                            "id_empresa": int(usuario[0]['id_empresa']),
-                            "id_grupo_empresa": int(empresa[0]['id_grupo_empresa']),
+                            "id_usuario": int(usuario['id_usuario']),
+                            "id_empresa": int(usuario['id_empresa']),
+                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
                             "iat": (time.mktime(datetime.datetime.now().timetuple())),
                             "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
-                            "admin": usuario[0]['user_admin']
+                            "admin": usuario['user_admin']
                         }
 
                     if payload:
@@ -156,37 +156,37 @@ def login():
                         dados_historico_list = [
                             {
                                 "data_ultimo_login": data_historico,
-                                "id_usuario": usuario[0]['id_usuario'],
+                                "id_usuario": usuario['id_usuario'],
                                 "name_hardware": dados_dict['name_hardware']
                             }
                         ]
 
                         HistoricoLogin().insert_ou_update(dados_historico_list)
 
-                    if usuario[0]['user_app'] == True and dados_dict['tipo'] == 'portal':
+                    if usuario['user_app'] == True and dados_dict['tipo'] == 'portal':
                         return jsonify({"Error": "não autorizado"}), 400
                     
-                    if usuario[0]['user_app'] == False and dados_dict['tipo'] == 'app':
+                    if usuario['user_app'] == False and dados_dict['tipo'] == 'app':
                         return jsonify({"Error": "não autorizado"}), 400
 
                     return jsonify({
                         "token": token
                     })
 
-                elif usuario[0]['user_admin']:
+                elif usuario['user_admin']:
                     
                     payload = {
-                        "id_usuario": int(usuario[0]['id_usuario']),
-                        "admin": usuario[0]['user_admin'],
+                        "id_usuario": int(usuario['id_usuario']),
+                        "admin": usuario['user_admin'],
                         "iat": (time.mktime(datetime.datetime.now().timetuple())),
                         "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
                     }
-                    print(usuario[0])
-                    if usuario[0].get('id_grupo_empresa'):
-                        payload['id_grupo_empresa'] = usuario[0]['id_grupo_empresa']
+                    print(usuario)
+                    if usuario.get('id_grupo_empresa'):
+                        payload['id_grupo_empresa'] = usuario['id_grupo_empresa']
                     
-                    if usuario[0].get('id_empresa'):
-                        payload['id_empresa'] = usuario[0]['id_empresa']
+                    if usuario.get('id_empresa'):
+                        payload['id_empresa'] = usuario['id_empresa']
 
                     if payload:
                         token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')

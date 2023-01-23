@@ -49,9 +49,9 @@ class PermissaoTela(Executa):
                         ]
                     )
 
-                    last_permissao_tela = self.select('permissao_tela', ['id_permissao_tela'], ['id_permissao_tela=(select max(id_permissao_tela) from permissao_tela) limit 1'])
+                    last_permissao_tela = self.select('permissao_tela', ['id_permissao_tela'], ['id_permissao_tela=(select max(id_permissao_tela) from permissao_tela) limit 1'], registro_unico=True)
 
-                    return {"Sucesso": "Permissao da tela inserida ou alterada com sucesso.", 'id': last_permissao_tela[0]['id_permissao_tela']}, 200
+                    return {"Sucesso": "Permissao da tela inserida ou alterada com sucesso.", 'id': last_permissao_tela['id_permissao_tela']}, 200
 
         except Exception as e:
             

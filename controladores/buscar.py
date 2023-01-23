@@ -1,5 +1,6 @@
 # -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
+import psycopg2
 
 class Busca(Executa):
     def __init__(self):
@@ -52,27 +53,35 @@ class Busca(Executa):
 
                         where_list.append(where)
 
-                usuario_list = self.select('usuarios', ['id_empresa'], [f"id_usuario={auth['id_usuario']}"])
+                usuario_dict = self.select('usuarios', ['*'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
 
                 if table != 'empresa' and table != 'grupo_empresa' and table != 'usuarios' and table != 'promocao_empresas':
-                    for usuario_dict in usuario_list :
-                        where_list.append(f"id_empresa={usuario_dict['id_empresa']}")
-            
-                if campos_list:
-                    promocao_item_list = self.select(table,
-                        campos_list,
-                        where_list
-                    )
-                else:
-                    promocao_item_list = self.select(table,
-                        [
-                            "*"
-                        ],
-                        where_list
-                    )
+                    where_list.append(f"id_empresa={usuario_dict['id_empresa']}")
 
-                return promocao_item_list            
+                try:
+                    if campos_list:
+                        promocao_item_list = self.select(table,
+                            campos_list,
+                            where_list
+                        )
+                    else:
+                        promocao_item_list = self.select(table,
+                            [
+                                "*"
+                            ],
+                            where_list
+                        )
 
+                    return promocao_item_list            
+
+                except psycopg2.errors.UndefinedColumn:
+                    if usuario_dict['user_admin']:
+                        return {'LOG': 'Admin encontrado'}, 200
+                except psycopg2.errors.InvalidTextRepresentation:
+                    if usuario_dict['user_admin']:
+                        return {'LOG': 'Admin encontrado'}, 200
+                except Exception as e:
+                    return {"Error": e}, 400
             else:
                 return {'Error': "Favor refazer login!"}, 400
 

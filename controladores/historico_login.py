@@ -36,9 +36,9 @@ class HistoricoLogin(Executa):
                     ]
                 )
 
-                last_historico_login = self.select('historico_login', ['id_historico_login'], ['id_historico_login=(select max(id_historico_login) from historico_login)'])
+                last_historico_login = self.select('historico_login', ['id_historico_login'], ['id_historico_login=(select max(id_historico_login) from historico_login)'], registro_unico=True)
 
-                return {"Sucesso": "Historico de login inserido com sucesso.", 'id': last_historico_login[0]['id_historico_login']}, 200
+                return {"Sucesso": "Historico de login inserido com sucesso.", 'id': last_historico_login['id_historico_login']}, 200
 
         except Exception as e:
             

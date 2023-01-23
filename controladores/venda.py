@@ -7,13 +7,12 @@ class Venda(Executa):
     
     def pos_venda(self, dados_dict, auth):
         try:
-            print(dados_dict)
-            ultima_venda_list = self.select('venda', ['max(id_venda)'], [f"id_usuario={auth['id_usuario']}"])
+            ultima_venda_dict = self.select('venda', ['max(id_venda)'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
         
-            if ultima_venda_list: 
+            if ultima_venda_dict: 
                 self.update('venda',
                     [f"status_venda='CONCLUIDA'"],
-                    [f"id_venda={ultima_venda_list[0]['max(id_venda)']}"]
+                    [f"id_venda={ultima_venda_dict['max(id_venda)']}"]
                 )
 
             return {'Sucesso': 'Pos venda feita com sucesso!'}
@@ -25,12 +24,12 @@ class Venda(Executa):
 
     def cancela_venda(self, auth):
         try:
-            ultima_venda_list = self.select('venda', ['max(id_venda)'], [f"id_usuario={auth['id_usuario']}"])
+            ultima_venda_dict = self.select('venda', ['max(id_venda)'], [f"id_usuario={auth['id_usuario']}"])
         
-            if ultima_venda_list: 
+            if ultima_venda_dict: 
                 self.update('venda',
                     [f"status_venda='CANCELADA'"],
-                    [f"id_venda={ultima_venda_list[0]['max(id_venda)']}"]
+                    [f"id_venda={ultima_venda_dict['max(id_venda)']}"]
                 )
 
             return {'Sucesso': 'Venda cancelada!'}

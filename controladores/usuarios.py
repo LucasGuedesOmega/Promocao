@@ -89,9 +89,9 @@ class Usuario(Executa):
                             ]   
                         )
 
-                        last_usuario_list = self.select('usuarios', ['id_usuario'], ['id_usuario=(select max(id_usuario) from usuarios)'])
+                        last_usuario_dict = self.select('usuarios', ['id_usuario'], ['id_usuario=(select max(id_usuario) from usuarios)'], registro_unico=True)
                     
-                        return {'Sucesso': 'Usuario cadastro com sucesso', 'id': last_usuario_list[0]['id_usuario']}, 200
+                        return {'Sucesso': 'Usuario cadastro com sucesso', 'id': last_usuario_dict['id_usuario']}, 200
 
                     elif is_cliente:
                         return {"Error": "CPF já cadastrado"}, 400

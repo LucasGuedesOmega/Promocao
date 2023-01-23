@@ -39,8 +39,7 @@ class EnviaEmail(Executa):
     
     def confirmacao_codigo(self, dados_dict):
         if dados_dict.get('codigo'):
-            confirma_dict = self.select('confirma_email', ['*'], [f"codigo='{dados_dict['codigo']}'"])[0]
-
+            confirma_dict = self.select('confirma_email', ['*'], [f"codigo='{dados_dict['codigo']}'"], registro_unico=True)
             if confirma_dict:
                 self.delete('confirma_email', [f"id_usuario={confirma_dict['id_usuario']}"])
 

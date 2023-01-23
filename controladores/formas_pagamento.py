@@ -56,9 +56,9 @@ class FormaPagamento(Executa):
                         ]
                     )
 
-                    last_forma_pagamento = self.select('forma_pagamento', ['id_forma_pagamento'], ['id_forma_pagamento=(select max(id_forma_pagamento) from forma_pagamento)'])
+                    last_forma_pagamento = self.select('forma_pagamento', ['id_forma_pagamento'], ['id_forma_pagamento=(select max(id_forma_pagamento) from forma_pagamento)'], registro_unico=True)
 
-                    return {"Sucesso": "Forma de pagamento inserida ou alterada com sucesso.", 'id': last_forma_pagamento[0]['id_forma_pagamento']}, 200
+                    return {"Sucesso": "Forma de pagamento inserida ou alterada com sucesso.", 'id': last_forma_pagamento['id_forma_pagamento']}, 200
 
         except Exception as e:
             

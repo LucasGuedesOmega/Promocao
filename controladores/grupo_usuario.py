@@ -50,9 +50,9 @@ class GrupoUsuario(Executa):
                         ]
                     )
 
-                    last_grupo_usuario = self.select('grupo_usuario', ['id_grupo_usuario'], ['id_grupo_usuario=(select max(id_grupo_usuario) from grupo_usuario)'])
+                    last_grupo_usuario = self.select('grupo_usuario', ['id_grupo_usuario'], ['id_grupo_usuario=(select max(id_grupo_usuario) from grupo_usuario)'], registro_unico=True)
 
-                    return {"Sucesso": "Grupo de usuario inserido ou alterado com sucesso.", 'id': last_grupo_usuario[0]['id_grupo_usuario']}, 200
+                    return {"Sucesso": "Grupo de usuario inserido ou alterado com sucesso.", 'id': last_grupo_usuario['id_grupo_usuario']}, 200
 
         except Exception as e:
             

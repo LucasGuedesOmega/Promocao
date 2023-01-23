@@ -66,9 +66,9 @@ class Promocao(Executa):
                         ]
                     )
 
-                    last_promocao_list = self.select('promocao', ['id_promocao'], ['id_promocao=(select max(id_promocao) from promocao)'])
+                    last_promocao_dict = self.select('promocao', ['id_promocao'], ['id_promocao=(select max(id_promocao) from promocao)'], registro_unico=True)
                   
-                    return {'Sucesso': 'Promoções cadastradas ou alteradas com sucesso!', 'id': last_promocao_list[0]['id_promocao']}, 200
+                    return {'Sucesso': 'Promoções cadastradas ou alteradas com sucesso!', 'id': last_promocao_dict['id_promocao']}, 200
 
         except Exception as e:
             
