@@ -32,12 +32,14 @@ class GrupoFormaPagamento(Executa):
                         [
                             "id_grupo_pagamento",
                             "id_forma_pagamento",
-                            'id_empresa'
+                            'id_empresa',
+                            'id_grupo_empresa',
                         ],
                         [
                             "{}".format(dados_dict['id_grupo_pagamento']), 
                             "{}".format(dados_dict['id_forma_pagamento']), 
                             "{}".format(dados_dict['id_empresa']), 
+                            "{}".format(dados_dict['id_grupo_empresa']), 
                         ]
                     )
 

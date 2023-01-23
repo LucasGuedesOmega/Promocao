@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	id_empresa bigint,
 	id_grupo_empresa bigint,
 	id_grupo_usuario bigint,
-	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_grupo_usuario)
+	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_empresa)
 	constraint fk_grupo_usuario foreign key (id_grupo_usuario) references grupo_usuario(id_grupo_usuario)
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
 );

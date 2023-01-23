@@ -28,37 +28,45 @@ class Usuario(Executa):
                 if dados_cliente:
                     is_usuario = True
 
-                if not is_cliente and not is_usuario:
-                    where_list = [] 
+                
+                where_list = [] 
 
-                    usuarios_list = None    
-                    if dados_dict.get('id_usuario'):
-                        where_list.append("id_usuario={}".format(dados_dict['id_usuario']))
+                usuarios_list = None    
+                if dados_dict.get('id_usuario'):
+                    where_list.append("id_usuario={}".format(dados_dict['id_usuario']))
 
-                        usuarios_list = self.select('usuarios', 
-                            [
-                                "id_usuario"
-                            ],
-                            where_list  
-                        )
+                    usuarios_list = self.select('usuarios', 
+                        [
+                            "id_usuario"
+                        ],
+                        where_list  
+                    )
 
-                    if usuarios_list:
-                        self.update('usuarios',
-                            [
-                                "username='{}'".format(dados_dict['username']),
-                                "senha='{}'".format(dados_dict['senha']),
-                                "status={}".format(dados_dict['status']),
-                                "user_admin={}".format(dados_dict['user_admin']),
-                                "user_app={}".format(dados_dict['user_app']),
-                                "id_empresa={}".format(dados_dict['id_empresa'])
-                            ],
-                            where_list  
-                        )
+                if not dados_dict['id_empresa']:
+                    dados_dict['id_empresa'] = 'null'
 
-                        return {'Sucesso': 'Usuario cadastro com sucesso', 'id': dados_dict['id_usuario']}, 200
+                if not dados_dict['id_grupo_empresa']:
+                    dados_dict['id_grupo_empresa'] = 'null'
 
-                    else:
+                if usuarios_list:
+                    self.update('usuarios',
+                        [
+                            "username='{}'".format(dados_dict['username']),
+                            "senha='{}'".format(dados_dict['senha']),
+                            "status={}".format(dados_dict['status']),
+                            "user_admin={}".format(dados_dict['user_admin']),
+                            "user_app={}".format(dados_dict['user_app']),
+                            "user_app_portal={}".format(dados_dict['user_app_portal']),
+                            "id_empresa={}".format(dados_dict['id_empresa']),
+                            "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
+                        ],
+                        where_list  
+                    )
 
+                    return {'Sucesso': 'Usuario cadastro com sucesso', 'id': dados_dict['id_usuario']}, 200
+
+                else:
+                    if not is_cliente and not is_usuario:
                         self.insert('usuarios',
                             [
                                 "username",
@@ -66,26 +74,29 @@ class Usuario(Executa):
                                 "status",
                                 "user_admin",
                                 "user_app",
-                                "id_empresa"
+                                "user_app_portal",
+                                "id_empresa",
+                                "id_grupo_empresa",
                             ],
                             [
                                 "'{}'".format(dados_dict['username']),
                                 "'{}'".format(dados_dict['senha']),
                                 "'{}'".format(dados_dict['status']),
                                 "{}".format(dados_dict['user_admin']),
-                                "{}".format(dados_dict['user_app']),
-                                "{}".format(dados_dict['id_empresa'])
+                                "{}".format(dados_dict['user_app_portal']),
+                                "{}".format(dados_dict['id_empresa']),
+                                "{}".format(dados_dict['id_grupo_empresa']),
                             ]   
                         )
 
                         last_usuario_list = self.select('usuarios', ['id_usuario'], ['id_usuario=(select max(id_usuario) from usuarios)'])
                     
                         return {'Sucesso': 'Usuario cadastro com sucesso', 'id': last_usuario_list[0]['id_usuario']}, 200
-                elif is_cliente:
-                    return {"Error": "CPF já cadastrado"}, 400
-                elif is_usuario:
-                    return {"Error": "Usuário já cadastrado"}, 400
-                    
+
+                    elif is_cliente:
+                        return {"Error": "CPF já cadastrado"}, 400
+                    elif is_usuario:
+                        return {"Error": "Usuário já cadastrado"}, 400
         except Exception as e:
             print(e)
             return {"Error": "Parametros invalidos"}, 400

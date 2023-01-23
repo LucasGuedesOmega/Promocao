@@ -14,20 +14,37 @@ class GrupoPagamento(Executa):
                     grupo_pagamento_list = None
                 else:
                     grupo_pagamento_list = self.select('grupo_pagamento',
-                        ["id_grupo_pagamento"],
-                        ["id_grupo_pagamento={}".format(dados_dict['id_grupo_pagamento'])]
+                        [
+                            "id_grupo_pagamento"
+                        ],
+                        [
+                            "id_grupo_pagamento={}".format(dados_dict['id_grupo_pagamento'])
+                        ]
                     )
 
                 if grupo_pagamento_list:
                     self.update('grupo_pagamento',
-                        ["descricao='{}'".format(dados_dict['descricao']), "status={}".format(dados_dict['status'])],
-                        ["id_grupo_pagamento={}".format(dados_dict['id_grupo_pagamento'])]
+                        [
+                            "descricao='{}'".format(dados_dict['descricao']), 
+                            "status={}".format(dados_dict['status'])
+                        ],
+                        [
+                            "id_grupo_pagamento={}".format(dados_dict['id_grupo_pagamento'])
+                        ]
                     )
                 else:
                     self.insert('grupo_pagamento',
-                        ["descricao", "status", "id_empresa"],
                         [
-                            "'{}'".format(dados_dict['descricao']), "{}".format(dados_dict['status']), "{}".format(dados_dict['id_empresa']), 
+                            "descricao", 
+                            "status", 
+                            "id_empresa",
+                            "id_grupo_empresa",
+                        ],
+                        [
+                            "'{}'".format(dados_dict['descricao']), 
+                            "{}".format(dados_dict['status']),
+                            "{}".format(dados_dict['id_empresa']), 
+                            "{}".format(dados_dict['id_grupo_empresa']), 
                         ]
                     )
 

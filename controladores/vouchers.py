@@ -135,7 +135,9 @@ class Voucher(Executa):
                 soma_desconto = total_cliente_list[0]['valor'] + calculo_dict['desconto']
                 self.update("total_valores_clientes", [f"valor={str(soma_desconto)}"], where_total)
             else:
-                self.insert("total_valores_clientes", ["id_cliente", 'valor', 'tipo'], [str(cliente_dict['id_cliente']), str(calculo_dict['desconto']), f"'{voucher_dict['tipocodigo']}'"])
+                self.insert("total_valores_clientes", 
+                ["id_cliente", 'valor', 'tipo', 'id_empresa', 'id_grupo_empresa'],
+                [str(cliente_dict['id_cliente']), str(calculo_dict['desconto']), f"'{voucher_dict['tipocodigo']}'", str(cliente_dict['id_empresa']), str(cliente_dict['id_grupo_empresa'])])
 
     def verifica_forma_pagamento(self, promocao, dados_dict):
         formas_pagamento_list = self.select('grupo_forma_pagamento',

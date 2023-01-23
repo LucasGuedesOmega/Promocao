@@ -38,14 +38,18 @@ class PermissaoTela(Executa):
                         [
                             "id_permissao",
                             "id_tela",
+                            "id_empresa",
+                            "id_grupo_empresa",
                         ],
                         [
                             "{}".format(dados_dict['id_permissao']),
                             "{}".format(dados_dict['id_tela']),
+                            "{}".format(dados_dict['id_empresa']),
+                            "{}".format(dados_dict['id_grupo_empresa']),
                         ]
                     )
 
-                    last_permissao_tela = self.select('permissao_tela', ['id_permissao_tela'], ['id_permissao_tela=(select max(id_permissao_tela) from permissao_tela)'])
+                    last_permissao_tela = self.select('permissao_tela', ['id_permissao_tela'], ['id_permissao_tela=(select max(id_permissao_tela) from permissao_tela) limit 1'])
 
                     return {"Sucesso": "Permissao da tela inserida ou alterada com sucesso.", 'id': last_permissao_tela[0]['id_permissao_tela']}, 200
 

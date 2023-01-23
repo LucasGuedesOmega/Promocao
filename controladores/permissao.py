@@ -37,9 +37,13 @@ class Permissao(Executa):
                     self.insert('permissao',
                         [
                             "nome",
+                            "id_empresa",
+                            "id_grupo_empresa",
                         ],
                         [
                             "'{}'".format(dados_dict['nome']),
+                            "{}".format(dados_dict['id_empresa']),
+                            "{}".format(dados_dict['id_grupo_empresa']),
                         ]
                     )
 

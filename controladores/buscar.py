@@ -26,6 +26,7 @@ class Busca(Executa):
                         elif ">" in valor_list[num] and "=" not in valor_list[num]:
                             valor_list[num] = ''.join( x for x in valor_list[num] if x not in ">")
                             where = "{}>'{}'".format(chave_dict, valor_list[num])
+
                         elif "<" in valor_list[num] and "=" not in valor_list[num] :
                             valor_list[num] = ''.join( x for x in valor_list[num] if x not in "<")
                             where = "{}<'{}'".format(chave_dict, valor_list[num])
@@ -38,9 +39,14 @@ class Busca(Executa):
                         elif "!=" in valor_list[num]:
                             valor_list[num] = ''.join( x for x in valor_list[num] if x not in "!=")
                             where = "{}!='{}'".format(chave_dict, valor_list[num])
+                            if valor_list[num] == 'true' or valor_list[num] == 'false':
+                                where = "{}!={}".format(chave_dict, valor_list[num])
+
                         elif chave_dict != "campos":
                             where = "{}='{}'".format(chave_dict, valor_list[num])
-                        
+                            if valor_list[num] == 'true' or valor_list[num] == 'false':
+                                where = "{}={}".format(chave_dict, valor_list[num])
+
                         if chave_dict == "campos":
                             campos_list = valor_list[num].split(', ')
 

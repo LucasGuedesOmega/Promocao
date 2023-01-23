@@ -24,7 +24,6 @@ class FormaPagamento(Executa):
                 if forma_pagamento_list:
                     self.update('forma_pagamento',
                         [
-                            "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
                             "status={}".format(dados_dict['status']),
                             "tipo='{}'".format(dados_dict['tipo']),
                             "id_externo={}".format(dados_dict['id_externo']),
@@ -40,20 +39,20 @@ class FormaPagamento(Executa):
                 else:
                     self.insert('forma_pagamento',
                         [
-                            "id_grupo_empresa",
                             "status",
                             "tipo",
                             "id_externo",
                             "descricao",
                             "id_empresa",
+                            "id_grupo_empresa",
                         ],
                         [
-                            "{}".format(dados_dict['id_grupo_empresa']),
                             "{}".format(dados_dict['status']),
                             "'{}'".format(dados_dict['tipo']),
                             "{}".format(dados_dict['id_externo']),
                             "'{}'".format(dados_dict['descricao']),
-                            "{}".format(dados_dict['id_empresa'])
+                            "{}".format(dados_dict['id_empresa']),
+                            "{}".format(dados_dict['id_grupo_empresa']),
                         ]
                     )
 

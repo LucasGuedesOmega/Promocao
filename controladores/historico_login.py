@@ -23,11 +23,15 @@ class HistoricoLogin(Executa):
                     [
                         "data_ultimo_login",
                         "id_usuario",
+                        "id_empresa",
+                        "id_grupo_empresa",
                         "name_hardware",
                     ],
                     [
                         "'{}'".format(dados_dict['data_ultimo_login']),
                         "{}".format(dados_dict['id_usuario']),
+                        "{}".format(dados_dict['id_empresa']),
+                        "{}".format(dados_dict['id_grupo_empresa']),
                         "'{}'".format(dados_dict['name_hardware']),
                     ]
                 )
