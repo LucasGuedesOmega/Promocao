@@ -5,11 +5,11 @@ class GrupoUsuario(Executa):
     def __init__(self):
         super().__init__()
     
-    def insert_or_update(self, dados_list):
+    def insert_ou_update(self, dados_list):
 
         try:
             for dados_dict in dados_list:
-                
+                print(dados_dict)
                 grupo_usuario_list = None
                 if dados_dict.get('id_grupo_usuario'):
                     grupo_usuario_list = self.select('grupo_usuario', 
@@ -26,6 +26,7 @@ class GrupoUsuario(Executa):
                         [
                             "nome='{}'".format(dados_dict['nome']),
                             "id_permissao={}".format(dados_dict['id_permissao']),
+                            "status={}".format(dados_dict['status'])
                         ],
                         [
                             "id_grupo_usuario={}".format(dados_dict['id_grupo_usuario'])
@@ -39,14 +40,14 @@ class GrupoUsuario(Executa):
                         [
                             "nome",
                             "id_permissao",
-                            "id_empresa",
                             "id_grupo_empresa",
+                            "status"
                         ],
                         [
                             "'{}'".format(dados_dict['nome']),
                             "{}".format(dados_dict['id_permissao']),
-                            "{}".format(dados_dict['id_empresa']),
                             "{}".format(dados_dict['id_grupo_empresa']),
+                            "{}".format(dados_dict['status']),
                         ]
                     )
 

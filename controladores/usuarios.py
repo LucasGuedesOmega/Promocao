@@ -57,13 +57,14 @@ class Usuario(Executa):
                             "user_admin={}".format(dados_dict['user_admin']),
                             "user_app={}".format(dados_dict['user_app']),
                             "user_app_portal={}".format(dados_dict['user_app_portal']),
+                            "id_grupo_usuario={}".format(dados_dict['id_grupo_usuario']),
                             "id_empresa={}".format(dados_dict['id_empresa']),
                             "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
                         ],
                         where_list  
                     )
 
-                    return {'Sucesso': 'Usuario cadastro com sucesso', 'id': dados_dict['id_usuario']}, 200
+                    return {'Sucesso': 'Usuario editado com sucesso', 'id': dados_dict['id_usuario']}, 200
 
                 else:
                     if not is_cliente and not is_usuario:
@@ -77,15 +78,18 @@ class Usuario(Executa):
                                 "user_app_portal",
                                 "id_empresa",
                                 "id_grupo_empresa",
+                                "id_grupo_usuario",
                             ],
                             [
                                 "'{}'".format(dados_dict['username']),
                                 "'{}'".format(dados_dict['senha']),
                                 "'{}'".format(dados_dict['status']),
                                 "{}".format(dados_dict['user_admin']),
+                                "{}".format(dados_dict['user_app']),
                                 "{}".format(dados_dict['user_app_portal']),
                                 "{}".format(dados_dict['id_empresa']),
                                 "{}".format(dados_dict['id_grupo_empresa']),
+                                "{}".format(dados_dict['id_grupo_usuario']),
                             ]   
                         )
 

@@ -72,7 +72,7 @@ class Executa(Conecta):
                 for key in key_list:
                     if type(retorno[key]) == datetime.datetime:
                         retorno[key] = self.format_date(retorno[key]) + " " + self.format_time(retorno[key])       
-
+        
         if registro_unico and len(retorno_list) == 1:
             return retorno_list[0]
 
@@ -112,7 +112,7 @@ class Executa(Conecta):
             Constrói e executa o insert.
         '''
         query = 'INSERT INTO {tabela} ({campos}) values ({valores});'.format(tabela=table, campos=','.join(fields_list), valores=','.join(values_list))
-
+        
         try:
             self.cursor.execute(query)
             self.connection.commit()

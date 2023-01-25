@@ -11,7 +11,6 @@ class Busca(Executa):
         try:
             
             if auth.get('id_usuario'):
-
                 chave_list = list(parametros_dict.keys())
                 valor_list = list(parametros_dict.values())
 
@@ -55,31 +54,36 @@ class Busca(Executa):
 
                 usuario_dict = self.select('usuarios', ['*'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
 
-                if table != 'empresa' and table != 'grupo_empresa' and table != 'usuarios' and table != 'promocao_empresas':
+                if table != 'empresa' and table != 'grupo_empresa' and table != 'usuarios' and table != 'grupo_usuario' and table != 'promocao_empresas' and table != 'tela_acao' and table != 'permissao_tela_acao':
                     where_list.append(f"id_empresa={usuario_dict['id_empresa']}")
 
                 try:
                     if campos_list:
-                        promocao_item_list = self.select(table,
+                        retorno_item_list = self.select(table,
                             campos_list,
                             where_list
                         )
                     else:
-                        promocao_item_list = self.select(table,
+                        retorno_item_list = self.select(table,
                             [
                                 "*"
                             ],
                             where_list
                         )
+                
+                    if retorno_item_list and table != 'tela_acao' and table != 'permissao_tela_acao' and not auth['user_admin'] and auth['id_grupo_empresa'] != retorno_item_list[0]['id_grupo_empresa']:
+                        return {'error': 'Você não tem permissão'}, 400
 
-                    return promocao_item_list            
+                    return retorno_item_list            
 
                 except psycopg2.errors.UndefinedColumn:
                     if usuario_dict['user_admin']:
                         return {'LOG': 'Admin encontrado'}, 200
+
                 except psycopg2.errors.InvalidTextRepresentation:
                     if usuario_dict['user_admin']:
                         return {'LOG': 'Admin encontrado'}, 200
+
                 except Exception as e:
                     return {"Error": e}, 400
             else:

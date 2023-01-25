@@ -29,6 +29,7 @@ from controladores.envia_emails import EnviaEmail
 from controladores.permissao import Permissao
 from controladores.permissao_tela import PermissaoTela
 from controladores.grupo_usuario import GrupoUsuario
+from controladores.funcionarios import Funcionario
 
 from banco.execucoes import Executa
 
@@ -115,100 +116,101 @@ def login():
                 dados_dict['senha'] = dados_dict['senha'].replace(" ", "")
 
                 usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa', 'user_app', 'id_grupo_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])], registro_unico=True)
-                
-                confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario='{usuario['id_usuario']}'"], registro_unico=True)
-           
-                if usuario and not confirma_email_list and not usuario['user_admin']:
-                    empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={int(usuario['id_empresa'])}"], registro_unico=True)
-                    payload = None
-                    if dados_dict['tipo'] == "app":
+       
+                if usuario:
+                    confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario={usuario['id_usuario']}"])
+
+                    if not confirma_email_list and not usuario['user_admin']:
+                        empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={usuario['id_empresa']}"], registro_unico=True)
+                        payload = None
+                        if dados_dict['tipo'] == "app":
+                            payload = {
+                                "id_usuario": int(usuario['id_usuario']),
+                                "id_empresa": int(usuario['id_empresa']),
+                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "iat": (time.mktime(datetime.datetime.now().timetuple())),
+                                "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(days=30)).timetuple())),
+                                "admin": usuario['user_admin']
+                            }
+                        elif dados_dict['tipo'] == 'consumidor':
+                            payload = {
+                                "id_usuario": int(usuario['id_usuario']),
+                                "id_empresa": int(usuario['id_empresa']),
+                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "admin": usuario['user_admin']
+                            }
+                        else:
+                            payload = {
+                                "id_usuario": int(usuario['id_usuario']),
+                                "id_empresa": int(usuario['id_empresa']),
+                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "iat": (time.mktime(datetime.datetime.now().timetuple())),
+                                "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
+                                "admin": usuario['user_admin']
+                            }
+
+                        if payload:
+                            token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
+
+                        if dados_dict.get("name_hardware"):
+                            data_historico = Executa().format_date(datetime.datetime.now()) + " " + Executa().format_time(datetime.datetime.now())
+
+                            dados_historico_list = [
+                                {
+                                    "data_ultimo_login": data_historico,
+                                    "id_usuario": usuario['id_usuario'],
+                                    "name_hardware": dados_dict['name_hardware']
+                                }
+                            ]
+
+                            HistoricoLogin().insert_ou_update(dados_historico_list)
+
+                        if usuario['user_app'] == True and dados_dict['tipo'] == 'portal':
+                            return jsonify({"Error": "não autorizado"}), 400
+                        
+                        if usuario['user_app'] == False and dados_dict['tipo'] == 'app':
+                            return jsonify({"Error": "não autorizado"}), 400
+
+                        return jsonify({
+                            "token": token
+                        })
+
+                    elif usuario['user_admin']:
+                        
                         payload = {
                             "id_usuario": int(usuario['id_usuario']),
-                            "id_empresa": int(usuario['id_empresa']),
-                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
-                            "iat": (time.mktime(datetime.datetime.now().timetuple())),
-                            "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(days=30)).timetuple())),
-                            "admin": usuario['user_admin']
-                        }
-                    elif dados_dict['tipo'] == 'consumidor':
-                        payload = {
-                            "id_usuario": int(usuario['id_usuario']),
-                            "id_empresa": int(usuario['id_empresa']),
-                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
-                            "admin": usuario['user_admin']
-                        }
-                    else:
-                        payload = {
-                            "id_usuario": int(usuario['id_usuario']),
-                            "id_empresa": int(usuario['id_empresa']),
-                            "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                            "admin": usuario['user_admin'],
                             "iat": (time.mktime(datetime.datetime.now().timetuple())),
                             "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
-                            "admin": usuario['user_admin']
                         }
+                        print(usuario)
+                        if usuario.get('id_grupo_empresa'):
+                            payload['id_grupo_empresa'] = usuario['id_grupo_empresa']
+                        
+                        if usuario.get('id_empresa'):
+                            payload['id_empresa'] = usuario['id_empresa']
 
-                    if payload:
-                        token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
+                        if payload:
+                            token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
 
-                    if dados_dict.get("name_hardware"):
-                        data_historico = Executa().format_date(datetime.datetime.now()) + " " + Executa().format_time(datetime.datetime.now())
+                        return jsonify({
+                            "token": token
+                        })
 
-                        dados_historico_list = [
-                            {
-                                "data_ultimo_login": data_historico,
-                                "id_usuario": usuario['id_usuario'],
-                                "name_hardware": dados_dict['name_hardware']
-                            }
-                        ]
-
-                        HistoricoLogin().insert_ou_update(dados_historico_list)
-
-                    if usuario['user_app'] == True and dados_dict['tipo'] == 'portal':
-                        return jsonify({"Error": "não autorizado"}), 400
-                    
-                    if usuario['user_app'] == False and dados_dict['tipo'] == 'app':
-                        return jsonify({"Error": "não autorizado"}), 400
-
-                    return jsonify({
-                        "token": token
-                    })
-
-                elif usuario['user_admin']:
-                    
-                    payload = {
-                        "id_usuario": int(usuario['id_usuario']),
-                        "admin": usuario['user_admin'],
-                        "iat": (time.mktime(datetime.datetime.now().timetuple())),
-                        "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
-                    }
-                    print(usuario)
-                    if usuario.get('id_grupo_empresa'):
-                        payload['id_grupo_empresa'] = usuario['id_grupo_empresa']
-                    
-                    if usuario.get('id_empresa'):
-                        payload['id_empresa'] = usuario['id_empresa']
-
-                    if payload:
-                        token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
-
-                    return jsonify({
-                        "token": token
-                    })
+                    elif confirma_email_list:
+                        return jsonify({"Error": "Email não confirmado."}), 400
 
                 elif not usuario:
-                    return jsonify({"Error": "Username ou Senha inválidos."}), 400
-                elif confirma_email_list:
-                    return jsonify({"Error": "Email não confirmado."}), 400
+                    return jsonify({"Error": "Usuário ou Senha inválidos."}), 400
 
             elif dados_dict.get('username') and not dados_dict.get('senha'):
                 return jsonify({"Error": "Informe uma senha."}), 400
 
             elif not dados_dict.get('username') and dados_dict.get('senha'):
-                return jsonify({"Error": "Informe um username."}), 400
+                return jsonify({"Error": "Informe um usuário."}), 400
 
-            else:
-                return jsonify({"Error": "Informe username e senha."}), 400
-
+            elif not dados_dict.get('username') and not dados_dict.get('senha'):
+                    return jsonify({"Error": "Informe um usuário e uma senha."}), 400
         # except Exception as e:
         #     print(e)
         #     return jsonify({"Error": "Parametros invalidos"}), 401
@@ -302,7 +304,7 @@ def grupo_usuario(auth):
 
         dados_list = json.loads(request.data.decode('ISO 8859-1')) 
   
-        retorno = GrupoUsuario().insert_ou_update(dados_list, auth)
+        retorno = GrupoUsuario().insert_ou_update(dados_list)
 
         return jsonify(retorno)
 
@@ -321,7 +323,7 @@ def permissao(auth):
 
         dados_list = json.loads(request.data.decode('ISO 8859-1')) 
   
-        retorno = Permissao().insert_ou_update(dados_list, auth)
+        retorno = Permissao().insert_ou_update(dados_list)
 
         return jsonify(retorno)
 
@@ -340,7 +342,7 @@ def permissao_tela(auth):
 
         dados_list = json.loads(request.data.decode('ISO 8859-1')) 
   
-        retorno = PermissaoTela().insert_ou_update(dados_list, auth)
+        retorno = PermissaoTela().insert_ou_update(dados_list)
 
         return jsonify(retorno)
 
@@ -348,18 +350,18 @@ def permissao_tela(auth):
 
         parametros_dict = request.args.to_dict()
 
-        retorno = Busca().buscar(parametros_dict, auth, 'permissao_tela')
+        retorno = Busca().buscar(parametros_dict, auth, 'permissao_tela_acao')
 
         return retorno
 
-@api.route('/api/v1/tela', methods=['GET'])
+@api.route('/api/v1/tela-acao', methods=['GET'])
 @autenticar_api
 def telas(auth):
     if request.method == 'GET':
 
         parametros_dict = request.args.to_dict()
 
-        retorno = Busca().buscar(parametros_dict, auth, 'tela')
+        retorno = Busca().buscar(parametros_dict, auth, 'tela_acao')
 
         return retorno
 
@@ -473,6 +475,26 @@ def promocao(auth):
         retorno = Busca().buscar(parametros_dict, auth, 'promocao')
 
         return retorno
+
+@api.route('/api/v1/funcionario', methods=['GET', 'POST'])
+@autenticar_api
+def funcionario(auth):
+    if request.method == 'POST':    
+
+        dados_list = request.get_json()
+
+        retorno = Funcionario().insert_ou_update(dados_list)
+
+        return retorno
+    
+    elif request.method == 'GET':
+
+        parametros_dict = request.args.to_dict()
+
+        retorno = Busca().buscar(parametros_dict, auth, 'funcionario')
+
+        return retorno
+
 
 @api.route('/api/v1/promocao-item', methods=['GET', 'POST'])
 @autenticar_api

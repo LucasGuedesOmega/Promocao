@@ -49,13 +49,28 @@ CREATE TABLE IF NOT EXISTS clientes (
 	nome varchar(100),
 	cpf varchar(11),
 	e_mail varchar(200),
-	senha varchar(200),
 	telefone varchar(20),
 	status boolean,
 	id_empresa bigint,
 	id_grupo_empresa bigint
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
 	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_empresa)
+);
+
+
+CREATE TABLE IF NOT EXISTS funcionario (
+	id_funcionario serial PRIMARY KEY,
+	nome varchar(100),
+	cpf varchar(11),
+	e_mail varchar(200),
+	telefone varchar(20),
+	status boolean,
+	id_usuario bigint,
+	id_empresa bigint,
+	id_grupo_empresa bigint,
+	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
+	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_empresa),
+	constraint fk_usuario foreign key (id_usuario) references usuarios(id_usuario)
 );
 
 CREATE TABLE IF NOT EXISTS forma_pagamento (
@@ -249,6 +264,7 @@ CREATE TABLE IF NOT EXISTS grupo_usuario (
 	id_grupo_usuario serial PRIMARY KEY,
 	nome varchar(50),
 	id_permissao bigint,
+	status boolean,
 	CONSTRAINT fk_permissao FOREIGN KEY(id_permissao)  REFERENCES permissao(id_permissao)
 )
 
@@ -257,26 +273,27 @@ CREATE TABLE IF NOT EXISTS permissao (
 	nome varchar(50)
 )
 
-CREATE TABLE IF NOT EXISTS permissao_tela (
-	id_permissao_tela serial PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS permissao_tela_acao (
+	id_permissao_tela_acao serial PRIMARY KEY,
 	id_permissao bigint,
-	id_tela bigint,
+	id_tela_acao bigint,
 	CONSTRAINT fk_permissao FOREIGN KEY(id_permissao)  REFERENCES permissao(id_permissao)
-	CONSTRAINT fk_tela FOREIGN KEY(id_telas)  REFERENCES tela(id_tela)
+	CONSTRAINT fk_tela_acao FOREIGN KEY(id_tela_acao)  REFERENCES tela(id_tela_acao)
 )
 
-CREATE TABLE IF NOT EXISTS tela (
-	id_tela serial PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS tela_acao (
+	id_tela_acao serial PRIMARY KEY,
 	nome varchar(50)
 )
 
 -- INSERIR TELAS
-INSERT INTO tela(nome) values ('DASHBOARD');
-INSERT INTO tela(nome) values ('CLIENTE');
-INSERT INTO tela(nome) values ('PRODUTO');
-INSERT INTO tela(nome) values ('PROMOCAO');
-INSERT INTO tela(nome) values ('GRUPO_PAGAMENTO');
-INSERT INTO tela(nome) values ('GRUPO_EMPRESA');
-INSERT INTO tela(nome) values ('SUPER_USUARIO');
-INSERT INTO tela(nome) values ('GRUPO_USUARIO');
-INSERT INTO tela(nome) values ('PERMISSAO');
+INSERT INTO tela_acao(nome) values ('DASHBOARD');
+INSERT INTO tela_acao(nome) values ('CLIENTE');
+INSERT INTO tela_acao(nome) values ('PRODUTO');
+INSERT INTO tela_acao(nome) values ('PROMOCAO');
+INSERT INTO tela_acao(nome) values ('GRUPO_PAGAMENTO');
+INSERT INTO tela_acao(nome) values ('GRUPO_EMPRESA');
+INSERT INTO tela_acao(nome) values ('SUPER_USUARIO');
+INSERT INTO tela_acao(nome) values ('GRUPO_USUARIO');
+INSERT INTO tela_acao(nome) values ('INSERT');
+INSERT INTO tela_acao(nome) values ('UPDATE');

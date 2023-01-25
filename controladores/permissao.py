@@ -25,6 +25,7 @@ class Permissao(Executa):
                     self.update('permissao',
                         [
                             "nome='{}'".format(dados_dict['nome']),
+                            "status={}".format(dados_dict['status']),
                         ],
                         [
                             "id_permissao={}".format(dados_dict['id_permissao'])
@@ -39,11 +40,13 @@ class Permissao(Executa):
                             "nome",
                             "id_empresa",
                             "id_grupo_empresa",
+                            "status",
                         ],
                         [
                             "'{}'".format(dados_dict['nome']),
                             "{}".format(dados_dict['id_empresa']),
                             "{}".format(dados_dict['id_grupo_empresa']),
+                            "{}".format(dados_dict['status']),
                         ]
                     )
 
