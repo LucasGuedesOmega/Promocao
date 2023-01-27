@@ -53,9 +53,9 @@ class Busca(Executa):
                         where_list.append(where)
 
                 usuario_dict = self.select('usuarios', ['*'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
-
-                if table != 'empresa' and table != 'grupo_empresa' and table != 'usuarios' and table != 'grupo_usuario' and table != 'promocao_empresas' and table != 'tela_acao' and table != 'permissao_tela_acao':
-                    where_list.append(f"id_empresa={usuario_dict['id_empresa']}")
+            
+                if table != 'empresa' and table != 'grupo_empresa' and table != 'usuarios' and table != 'promocao_empresas' and table != 'tela_acao' and table != 'permissao_tela_acao':
+                    where_list.append(f"id_grupo_empresa={usuario_dict['id_grupo_empresa']}")
 
                 try:
                     if campos_list:

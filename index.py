@@ -106,7 +106,6 @@ def autenticar_api(f):
 @api.route('/api/v1/login', methods=['POST'])
 def login():
     if request.method == 'POST':
-        # try:
         dados_list = request.get_json()
         for dados_dict in dados_list:
         
@@ -115,7 +114,20 @@ def login():
                 dados_dict['username'] = dados_dict['username'].replace(" ", "")
                 dados_dict['senha'] = dados_dict['senha'].replace(" ", "")
 
-                usuario = Usuario().select('usuarios', ['id_usuario', 'user_admin', 'id_empresa', 'user_app', 'id_grupo_empresa'], ["username='{}'".format(dados_dict['username']), "senha='{}'".format(dados_dict['senha'])], registro_unico=True)
+                usuario = Usuario().select('usuarios', 
+                [
+                    'id_usuario', 
+                    'user_admin', 
+                    'id_empresa', 
+                    'user_app', 
+                    'id_grupo_empresa', 
+                    'id_grupo_usuario'
+                ], 
+                [
+                    "username='{}'".format(dados_dict['username']), 
+                    "senha='{}'".format(dados_dict['senha'])
+                ], 
+                registro_unico=True)
        
                 if usuario:
                     confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario={usuario['id_usuario']}"])
@@ -148,6 +160,9 @@ def login():
                                 "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
                                 "admin": usuario['user_admin']
                             }
+
+                        if usuario.get('id_grupo_usuario') and usuario['id_grupo_usuario']:
+                            payload['id_grupo_usuario'] = usuario['id_grupo_usuario']
 
                         if payload:
                             token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
@@ -183,12 +198,15 @@ def login():
                             "iat": (time.mktime(datetime.datetime.now().timetuple())),
                             "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
                         }
-                        print(usuario)
+
                         if usuario.get('id_grupo_empresa'):
                             payload['id_grupo_empresa'] = usuario['id_grupo_empresa']
                         
                         if usuario.get('id_empresa'):
                             payload['id_empresa'] = usuario['id_empresa']
+
+                        if usuario.get('id_grupo_usuario'):
+                            payload['id_grupo_usuario'] = usuario['id_grupo_usuario']
 
                         if payload:
                             token =  jwt.encode(payload, b64decode(f"{api.config['SECRET_KEY']}"), algorithm='HS256')
@@ -315,6 +333,26 @@ def grupo_usuario(auth):
         retorno = Busca().buscar(parametros_dict, auth, 'grupo_usuario')
 
         return retorno
+        
+@api.route('/api/v1/valida-permissao', methods=['GET'])
+@autenticar_api
+def valida_permissao(auth):
+    if request.method == 'GET':
+
+        retorno = Permissao().valida_permissao(auth)
+        
+        return retorno
+
+@api.route('/api/v1/valida-permissao-tela', methods=['POST'])
+@autenticar_api
+def valida_permissao_tela(auth):
+    if request.method == 'POST':
+        
+        dados_dict = request.get_json()
+
+        retorno = Permissao().valida_permissao_tela(dados_dict, auth)
+        
+        return jsonify(retorno)
 
 @api.route('/api/v1/permissao', methods=['GET', 'POST'])
 @autenticar_api
@@ -332,7 +370,7 @@ def permissao(auth):
         parametros_dict = request.args.to_dict()
 
         retorno = Busca().buscar(parametros_dict, auth, 'permissao')
-
+        print(retorno)
         return retorno
 
 @api.route('/api/v1/permissao-tela', methods=['GET', 'POST'])

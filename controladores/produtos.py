@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
-
+import re
 class Produto(Executa):
     def __init__(self):
         super().__init__()
@@ -12,6 +12,8 @@ class Produto(Executa):
 
             for dados_dict in dados_list:
                 
+                dados_dict['descricaoProduto'] = re.sub(r"[^a-zA-Z0-9]","", dados_dict['descricaoProduto'])
+
                 status_api = dados_dict['status']
 
                 if dados_dict['status'] == 'ATIVO':
@@ -73,6 +75,7 @@ class Produto(Executa):
                             'ncm',
                             'anp',
                             'id_empresa',
+                            'id_grupo_empresa'
                         ],
                         [
                             "'{}'".format(dados_dict['identificadorExternoProduto']),
@@ -86,6 +89,7 @@ class Produto(Executa):
                             "'{}'".format(dados_dict['ncm']),
                             "'{}'".format(dados_dict['anp']),
                             "{}".format(auth['id_empresa']),
+                            "{}".format(auth['id_grupo_empresa']),
                         ]
                     )
                     retorno_produto_dict['acao'] = "CREATE"

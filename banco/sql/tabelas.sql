@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS produtos (
 	ncm varchar(8),
 	anp varchar(10),
 	id_empresa bigint,
-	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
+	id_grupo_empresa bigint,
+	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
+	constraint fk_grupo_empresa foreign key (id_grupo_empresa) references grupo_empresa(id_grupo_empresa)
 );
 
 CREATE TABLE IF NOT EXISTS clientes (
@@ -197,16 +199,6 @@ CREATE TABLE IF NOT EXISTS voucher (
 	CONSTRAINT fk_promocao FOREIGN KEY(id_promocao)  REFERENCES promocao(id_promocao)
 )
 
-
-CREATE TABLE IF NOT EXISTS promocao_empresas (
-	id_promocao_empresa serial PRIMARY KEY,
-	id_promocao bigint,
-	id_empresa bigint,
-	status boolean,
-	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
-	CONSTRAINT fk_promocao FOREIGN KEY(id_promocao)  REFERENCES promocao(id_promocao)
-)
-
 CREATE TABLE IF NOT EXISTS promocao_empresas (
 	id_promocao_empresa serial PRIMARY KEY,
 	id_promocao bigint,
@@ -251,7 +243,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	status boolean,
 	user_admin boolean,
 	user_app boolean,
-	user_app_portal boolean,
+	admin_posto boolean,
 	id_empresa bigint,
 	id_grupo_empresa bigint,
 	id_grupo_usuario bigint,

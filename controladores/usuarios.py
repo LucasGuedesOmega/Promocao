@@ -12,7 +12,7 @@ class Usuario(Executa):
 
         try:
             for dados_dict in dados_list: 
-                
+                print(dados_dict)
                 is_cliente = False
                 is_usuario = False
 
@@ -28,7 +28,6 @@ class Usuario(Executa):
                 if dados_cliente:
                     is_usuario = True
 
-                
                 where_list = [] 
 
                 usuarios_list = None    
@@ -41,7 +40,7 @@ class Usuario(Executa):
                         ],
                         where_list  
                     )
-
+            
                 if not dados_dict['id_empresa']:
                     dados_dict['id_empresa'] = 'null'
 
@@ -56,7 +55,7 @@ class Usuario(Executa):
                             "status={}".format(dados_dict['status']),
                             "user_admin={}".format(dados_dict['user_admin']),
                             "user_app={}".format(dados_dict['user_app']),
-                            "user_app_portal={}".format(dados_dict['user_app_portal']),
+                            "admin_posto={}".format(dados_dict['admin_posto']),
                             "id_grupo_usuario={}".format(dados_dict['id_grupo_usuario']),
                             "id_empresa={}".format(dados_dict['id_empresa']),
                             "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
@@ -75,7 +74,7 @@ class Usuario(Executa):
                                 "status",
                                 "user_admin",
                                 "user_app",
-                                "user_app_portal",
+                                "admin_posto",
                                 "id_empresa",
                                 "id_grupo_empresa",
                                 "id_grupo_usuario",
@@ -86,7 +85,7 @@ class Usuario(Executa):
                                 "'{}'".format(dados_dict['status']),
                                 "{}".format(dados_dict['user_admin']),
                                 "{}".format(dados_dict['user_app']),
-                                "{}".format(dados_dict['user_app_portal']),
+                                "{}".format(dados_dict['admin_posto']),
                                 "{}".format(dados_dict['id_empresa']),
                                 "{}".format(dados_dict['id_grupo_empresa']),
                                 "{}".format(dados_dict['id_grupo_usuario']),
