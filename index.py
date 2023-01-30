@@ -370,7 +370,7 @@ def permissao(auth):
         parametros_dict = request.args.to_dict()
 
         retorno = Busca().buscar(parametros_dict, auth, 'permissao')
-        print(retorno)
+  
         return retorno
 
 @api.route('/api/v1/permissao-tela', methods=['GET', 'POST'])

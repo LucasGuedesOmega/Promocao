@@ -103,7 +103,7 @@ class Permissao(Executa):
     def valida_permissao_tela(self, dados_dict, auth):
 
         if auth.get('user_admin') or auth.get('admin_posto') and not auth.get('id_grupo_usuario'):
-            return {'permissao': True}, 200
+            return {'permissao': True, 'cadastro': True, 'editar': True}, 200
 
         if not dados_dict.get('tela'):
             return {'error': 'informe o parametro tela.'}, 400
@@ -129,7 +129,16 @@ class Permissao(Executa):
         else:
             return {'error': 'Grupo de usuário não vinculado ao usuário'}, 400
 
-        if dados_dict['tela'] in permissao_usuario_telas_list:
-            return {'permissao': True}, 200
+        cadastro = 'CADASTRO'
+        editar = 'EDITAR'
+
+        if dados_dict['tela'] in permissao_usuario_telas_list and cadastro in permissao_usuario_telas_list and editar in permissao_usuario_telas_list:
+            return {'permissao': True, 'cadastro': True, 'editar': True}, 200
+        elif dados_dict['tela'] in permissao_usuario_telas_list and cadastro not in permissao_usuario_telas_list and editar in permissao_usuario_telas_list:
+            return {'permissao': True, 'cadastro': False, 'editar': True}, 200
+        elif dados_dict['tela'] in permissao_usuario_telas_list and cadastro in permissao_usuario_telas_list and editar not in permissao_usuario_telas_list:
+            return {'permissao': True, 'cadastro': True, 'editar': False}, 200
+        elif dados_dict['tela'] in permissao_usuario_telas_list and cadastro not in permissao_usuario_telas_list and editar not in permissao_usuario_telas_list:
+            return {'permissao': True, 'cadastro': False, 'editar': False}, 200
         else:
             return {'permissao': False}, 200
