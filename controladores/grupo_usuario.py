@@ -9,7 +9,6 @@ class GrupoUsuario(Executa):
 
         try:
             for dados_dict in dados_list:
-                print(dados_dict)
                 grupo_usuario_list = None
                 if dados_dict.get('id_grupo_usuario'):
                     grupo_usuario_list = self.select('grupo_usuario', 

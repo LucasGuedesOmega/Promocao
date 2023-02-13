@@ -16,6 +16,8 @@ class Executa(Conecta):
         '''
             Constrói o select e executa o mesmo. 
         '''
+        inicial_table = None
+
         if fields_list[0] == "*":
             fields_list.remove("*")
 
@@ -41,6 +43,15 @@ class Executa(Conecta):
                 condicao = ' and '.join(where_list), 
                 join_table = ''.join(join_list))
 
+        elif join_list:
+            inicial_table = table[0:2]
+            
+            query = 'SELECT {campos} from {tabela} {inicial_table} {join_table};'.format(  
+                campos = ','.join(fields_list), 
+                tabela = table, 
+                inicial_table=inicial_table,
+                join_table = ' '.join(join_list))
+
         else:
             query = 'SELECT {campos} from {tabela};'.format(campos = ','.join(fields_list), tabela = table)
 
@@ -51,18 +62,21 @@ class Executa(Conecta):
             self.cursor.execute(query)
 
         fetch_list = self.cursor.fetchall()
-    
+
         retorno_list = []
 
         for dados_list in fetch_list:
             retorno_dict = dict(zip(fields_list, dados_list))
        
             retorno_list.append(retorno_dict)
-        
-        for retorno in retorno_list:
-            key_list = retorno.keys()
 
-            if format_date and table != 'historico_table':
+        arruma_key_list = []
+      
+        for retorno in retorno_list:
+            
+            key_list = retorno.keys()
+            
+            if format_date and table not in ['historico_table', 'voucher', 'venda']:
                 for key in key_list:
                     if type(retorno[key]) == datetime.datetime:
                         retorno[key] = self.format_date(retorno[key])
@@ -72,6 +86,25 @@ class Executa(Conecta):
                 for key in key_list:
                     if type(retorno[key]) == datetime.datetime:
                         retorno[key] = self.format_date(retorno[key]) + " " + self.format_time(retorno[key])       
+                    if type(retorno[key]) == datetime.time:
+                        retorno[key] = self.format_time(retorno[key])
+
+            arruma_key_dict = {}
+
+            for key in key_list:
+                if " as " in key:
+                    key_separada = key.split(" as ")
+                else:
+                    key_separada = key.split(".")
+
+                if len(key_separada) > 1:
+                    arruma_key_dict[f"{key_separada[1]}"] = retorno[key]
+
+            if arruma_key_dict:
+                arruma_key_list.append(arruma_key_dict)
+
+        if arruma_key_list:
+            retorno_list = arruma_key_list
         
         if registro_unico and len(retorno_list) == 1:
             return retorno_list[0]
@@ -92,7 +125,7 @@ class Executa(Conecta):
         if segundos < 10:
             segundos = "0" + f"{segundos}"
         
-        return f"{hora}:{minuto}:{segundos}"
+        return f"{hora}:{minuto}:{segundos}.000"
 
     def format_date(self, date):
         dia = date.day
@@ -112,7 +145,7 @@ class Executa(Conecta):
             Constrói e executa o insert.
         '''
         query = 'INSERT INTO {tabela} ({campos}) values ({valores});'.format(tabela=table, campos=','.join(fields_list), valores=','.join(values_list))
-        
+
         try:
             self.cursor.execute(query)
             self.connection.commit()

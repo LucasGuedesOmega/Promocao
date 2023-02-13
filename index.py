@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from flask import Flask, request, jsonify, abort, current_app
+from flask import Flask, request, jsonify, abort, current_app, send_from_directory
 import os
 from flask_cors import CORS
 from functools import wraps
@@ -30,6 +30,7 @@ from controladores.permissao import Permissao
 from controladores.permissao_tela import PermissaoTela
 from controladores.grupo_usuario import GrupoUsuario
 from controladores.funcionarios import Funcionario
+from controladores.exportar import Exportar
 
 from banco.execucoes import Executa
 
@@ -72,17 +73,14 @@ def autenticar_api(f):
             data=jwt.decode(token, b64decode(current_app.config["SECRET_KEY"]), algorithms=["HS256"])
             current_user = Usuario().select('usuarios', ['*'], ["id_usuario={}".format(data['id_usuario'])], registro_unico=True)
             if current_user is None:
-                print('token invalido')
                 return {
                     "message": "Token Inválido!",
                     "data": None,
                     "error": "não autorizado"
                 }, 401
             if not current_user["status"]:
-                print('status')
                 abort(403)
         except jwt.exceptions.ExpiredSignatureError:
-            print('token expirado')
             return {
                 "message": "Algo deu errado",
                 "data": None,
@@ -121,14 +119,15 @@ def login():
                     'id_empresa', 
                     'user_app', 
                     'id_grupo_empresa', 
-                    'id_grupo_usuario'
+                    'id_grupo_usuario',
+                    'admin_posto'
                 ], 
                 [
                     "username='{}'".format(dados_dict['username']), 
                     "senha='{}'".format(dados_dict['senha'])
                 ], 
                 registro_unico=True)
-       
+
                 if usuario:
                     confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario={usuario['id_usuario']}"])
 
@@ -142,14 +141,16 @@ def login():
                                 "id_grupo_empresa": int(empresa['id_grupo_empresa']),
                                 "iat": (time.mktime(datetime.datetime.now().timetuple())),
                                 "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(days=30)).timetuple())),
-                                "admin": usuario['user_admin']
+                                "admin": usuario['user_admin'],
+                                "admin_posto": usuario['admin_posto']
                             }
                         elif dados_dict['tipo'] == 'consumidor':
                             payload = {
                                 "id_usuario": int(usuario['id_usuario']),
                                 "id_empresa": int(usuario['id_empresa']),
                                 "id_grupo_empresa": int(empresa['id_grupo_empresa']),
-                                "admin": usuario['user_admin']
+                                "admin": usuario['user_admin'],
+                                "admin_posto": usuario['admin_posto']
                             }
                         else:
                             payload = {
@@ -158,7 +159,8 @@ def login():
                                 "id_grupo_empresa": int(empresa['id_grupo_empresa']),
                                 "iat": (time.mktime(datetime.datetime.now().timetuple())),
                                 "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
-                                "admin": usuario['user_admin']
+                                "admin": usuario['user_admin'],
+                                "admin_posto": usuario['admin_posto'],
                             }
 
                         if usuario.get('id_grupo_usuario') and usuario['id_grupo_usuario']:
@@ -197,6 +199,7 @@ def login():
                             "admin": usuario['user_admin'],
                             "iat": (time.mktime(datetime.datetime.now().timetuple())),
                             "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
+                            "admin_posto": usuario['admin_posto']
                         }
 
                         if usuario.get('id_grupo_empresa'):
@@ -229,9 +232,6 @@ def login():
 
             elif not dados_dict.get('username') and not dados_dict.get('senha'):
                     return jsonify({"Error": "Informe um usuário e uma senha."}), 400
-        # except Exception as e:
-        #     print(e)
-        #     return jsonify({"Error": "Parametros invalidos"}), 401
 
 @api.route('/api/v1/empresas-promocao', methods=['GET', 'POST'])
 @autenticar_api
@@ -473,7 +473,30 @@ def venda(auth):
 
     retorno = Busca().buscar(parametros_dict, auth, 'venda')
 
-    return retorno
+    return jsonify(retorno)
+
+@api.route('/api/v1/relatorio-vendas', methods=['GET'])
+@autenticar_api
+def relatorio_venda(auth):
+   
+    parametros_dict = request.args.to_dict()
+
+    retorno = Venda().relatorio(parametros_dict, auth)
+
+    return jsonify(retorno)
+
+@api.route('/api/v1/exporta-excel', methods=['POST'])
+@autenticar_api
+def exporta_excel(auth):
+    if request.method == 'POST':
+        dados_list = request.get_json()
+
+        Exportar().exporta_excel(auth, dados_list)
+
+        uploads = os.path.join(current_app.root_path, "static\\arquivos_exportar")
+        path = 'exportar.xlsx'
+        
+        return send_from_directory(directory=uploads, path=path, as_attachment=True)
 
 @api.route('/api/v1/integracao/posvenda', methods=['GET', 'POST'])
 @autenticar_api
@@ -692,5 +715,10 @@ def handle_exception(err):
     path = request.path 
     print(path)
 
+@api.errorhandler(404)
+def page_not_found(error):
+    print(error)
+    return 'Page not found, 400', 404
+
 if __name__ == '__main__':
-    api.run(debug=True, host='192.168.1.18', port=5080)
+    api.run(debug=True, host='172.19.10.30', port=5080)

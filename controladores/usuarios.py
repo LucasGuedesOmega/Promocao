@@ -12,7 +12,6 @@ class Usuario(Executa):
 
         try:
             for dados_dict in dados_list: 
-                print(dados_dict)
                 is_cliente = False
                 is_usuario = False
 

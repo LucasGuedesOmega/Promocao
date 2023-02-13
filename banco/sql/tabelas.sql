@@ -83,8 +83,10 @@ CREATE TABLE IF NOT EXISTS forma_pagamento (
 	id_externo bigint,
 	descricao varchar(70),
 	id_empresa bigint,
+	id_grupo_pagamento bigint,
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
-	CONSTRAINT fk_grupo_empresas FOREIGN KEY (id_grupo_empresa) REFERENCES grupo_empresa(id_grupo_empresa)
+	CONSTRAINT fk_grupo_empresas FOREIGN KEY (id_grupo_empresa) REFERENCES grupo_empresa(id_grupo_empresa),
+	CONSTRAINT fk_grupo_pagamento FOREIGN KEY (id_grupo_pagamento) REFERENCES grupo_pagamento(id_grupo_pagamento),
 );
 
 CREATE TABLE IF NOT EXISTS grupo_pagamento(
@@ -93,16 +95,6 @@ CREATE TABLE IF NOT EXISTS grupo_pagamento(
 	status boolean,
 	id_empresa bigint,
 	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa)
-);
-
-CREATE TABLE IF NOT EXISTS grupo_forma_pagamento(
-	id_grupo_forma_pagamento serial PRIMARY KEY,
-	id_grupo_pagamento bigint,
-	id_forma_pagamento bigint,
-	id_empresa bigint,
-	constraint fk_empresa foreign key (id_empresa) references empresa(id_empresa),
-	CONSTRAINT fk_grupo_pagamento FOREIGN KEY (id_grupo_pagamento) REFERENCES grupo_pagamento(id_grupo_pagamento),
-	CONSTRAINT fk_forma_pagamento FOREIGN KEY (id_forma_pagamento) REFERENCES forma_pagamento(id_forma_pagamento)
 );
 
 CREATE TABLE IF NOT EXISTS promocao(

@@ -12,8 +12,14 @@ class Produto(Executa):
 
             for dados_dict in dados_list:
                 
-                dados_dict['descricaoProduto'] = re.sub(r"[^a-zA-Z0-9]","", dados_dict['descricaoProduto'])
+                descricao_produtos_list = dados_dict['descricaoProduto'].split(' ')
+                descricao_join_list = []
+                for p in descricao_produtos_list:
+                    palavra = re.sub(r"[^a-zA-Z0-9]","", p)
+                    descricao_join_list.append(palavra)
 
+                dados_dict['descricaoProduto'] = " ".join(descricao_join_list)
+                
                 status_api = dados_dict['status']
 
                 if dados_dict['status'] == 'ATIVO':

@@ -61,20 +61,19 @@ class Permissao(Executa):
     def valida_permissao(self, auth):
 
         permissao_usuario_telas_list = []
-
+   
         if auth.get('user_admin') or auth.get('admin_posto') and not auth.get('id_grupo_usuario'):
-            permissao_tela_list = self.select('permissao_tela_acao', ['*'])
+            permissao_tela_list = self.select('tela_acao', ['*'])
 
             for permissao_tela_dict in permissao_tela_list:
-                permissao_usuario_tela_dict = self.select("tela_acao", ['*'], [f"id_tela_acao={permissao_tela_dict['id_tela_acao']}"], registro_unico=True)
+                if permissao_tela_dict:
 
-                if permissao_usuario_tela_dict:
                     tela_dict = {
-                        'nome': permissao_usuario_tela_dict['nome']
+                        'nome': permissao_tela_dict['nome']
                     }
 
                     permissao_usuario_telas_list.append(tela_dict)
-            
+
             return permissao_usuario_telas_list, 200
 
         grupo_usuario_dict = self.select('grupo_usuario', ['*'], [f"id_grupo_usuario={auth['id_grupo_usuario']}"], registro_unico=True)

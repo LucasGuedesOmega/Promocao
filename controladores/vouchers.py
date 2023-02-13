@@ -15,17 +15,7 @@ class Voucher(Executa):
         lista_retorno = []
         
         for dados_dict in dados_list:
-            voucher_dict = self.select('voucher',
-                [
-                    '*'
-                ],
-                [
-                    "codigo_voucher='{}'".format(dados_dict['codigoValidacao'])
-                ],
-                None,
-                False,
-                registro_unico=True
-            )
+            voucher_dict = self.select('voucher', ['*'],["codigo_voucher='{}'".format(dados_dict['codigoValidacao'])], None, format_date=True, registro_unico=True)
             
             if voucher_dict:
 
@@ -36,12 +26,12 @@ class Voucher(Executa):
                 calculo_dict = self.calcula_desconto(dados_dict, promocao_dict)
                 verifica_empresa = self.promocao_empresa(promocao_dict, dados_dict['codigoEmpresa'])
                 verifica_datas = self.verifica_datas(promocao_dict)
-                verifica_forma_pagamento = self.verifica_forma_pagamento(promocao_dict, dados_dict)
+                formas_pagamento_dict = self.select('forma_pagamento', ['*'], [f"id_grupo_pagamento={promocao_dict['id_grupo_pagamento']}", f"id_externo={dados_dict['identificadorExternoFormaPagamento']}"], registro_unico=True)
 
-                if not expira_voucher and produto_dict and verifica_empresa and verifica_datas and promocao_dict['status'] and verifica_forma_pagamento:
+                if not expira_voucher and produto_dict and verifica_empresa and verifica_datas and promocao_dict['status'] and formas_pagamento_dict:
 
-                    cliente_dict = self.select('clientes', ['*'], [f"id_usuario={auth['id_usuario']}"], registro_unico=True)
-
+                    cliente_dict = self.select('clientes', ['*'], [f"id_usuario={voucher_dict['id_usuario']}"], registro_unico=True)
+          
                     self.insert_historico(dados_dict, calculo_dict, voucher_dict, cliente_dict)
 
                     placa = None
@@ -85,17 +75,19 @@ class Voucher(Executa):
                                 "token_integracao": dados_dict['tokenIntegracao'],
                                 "data_venda": dados_dict['dataVenda'],
                                 "hora_venda": dados_dict['horaVenda'],
-                                "id_forma_pagamento": 'null',
+                                "id_forma_pagamento": formas_pagamento_dict['id_forma_pagamento'],
                                 "contigencia": False,
                                 "id_promocao": promocao_dict['id_promocao'],
                                 "id_empresa": empresa_dict['id_empresa'],
                                 "id_usuario": auth['id_usuario'],
                                 "status_venda": "EMITIDA",
+                                "tipo_desconto": voucher_dict['tipocodigo'],
                                 "descricao_forma_pagamento": dados_dict['descricaoFormaPagamento'],
-                                'link_documento_fiscal': 'null'
+                                'link_documento_fiscal': 'null',
+                                'id_grupo_empresa': cliente_dict['id_grupo_empresa'],
                             }
                         ]
-
+                       
                         self.venda_controller.insert_or_update(dados_venda_list)
                         self.update('voucher', ["usado=true"], [f"id_voucher={voucher_dict['id_voucher']}"])
 
@@ -111,7 +103,7 @@ class Voucher(Executa):
                     return {'erros': ['A promocao ja expirou ou nao esta em um dia da semana valido.']}, 400
                 elif not promocao_dict['status']:
                     return {'erros': ['A promocao nao esta ativa.']}, 400 
-                elif not verifica_forma_pagamento:
+                elif not formas_pagamento_dict:
                     return {'erros': ['A forma de pagamento nao esta na promocao.']}, 400 
             else:
                 return {'erros': ['Voucher incorreto.']}, 400
@@ -136,26 +128,10 @@ class Voucher(Executa):
                 ["id_cliente", 'valor', 'tipo', 'id_empresa', 'id_grupo_empresa'],
                 [str(cliente_dict['id_cliente']), str(calculo_dict['desconto']), f"'{voucher_dict['tipocodigo']}'", str(cliente_dict['id_empresa']), str(cliente_dict['id_grupo_empresa'])])
 
-    def verifica_forma_pagamento(self, promocao, dados_dict):
-        formas_pagamento_list = self.select('grupo_forma_pagamento',
-            ['fp.id_externo'],
-            [f"gr.id_grupo_pagamento={promocao['id_grupo_pagamento']}"],
-            ["left join forma_pagamento fp on (fp.id_forma_pagamento=gr.id_forma_pagamento)"]
-        )
-        
-        list_id_externos = []
-        for formas_pagamento_dict in formas_pagamento_list:
-            list_id_externos.append(formas_pagamento_dict['fp.id_externo'])
-        
-        if dados_dict['identificadorExternoFormaPagamento'] in list_id_externos:
-            return True
-        
-        return False
-
     def verifica_datas(self, promocao_dict):
         
         hoje = datetime.now()
-        data_final_promocao = promocao_dict['data_fim']
+        data_final_promocao = datetime.strptime(promocao_dict['data_fim'], '%Y-%m-%d %H:%M:%S.%f')
         semana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo']
 
         if hoje > data_final_promocao:
@@ -178,11 +154,11 @@ class Voucher(Executa):
         return False
 
     def compara_datas_voucher(self, voucher_dict):
-        data_ini_db = voucher_dict['data_ini']
+        data_ini_db = datetime.strptime(voucher_dict['data_ini'], '%Y-%m-%d %H:%M:%S.%f' )
         agora = datetime.now()
 
         diferenca = agora - data_ini_db
-        
+
         if diferenca.seconds < 900 and not voucher_dict['usado']:
             return False
         elif voucher_dict['usado']:
