@@ -139,7 +139,10 @@ class Venda(Executa):
                 chave_list.append(chave)
 
             where_list = Busca().parametros(chave_list, valor_list)[0]
-            
+
+            if where_list:
+                where_list[-1] = where_list[-1] + ' order by ve.data_venda, ve.hora_venda'
+        
             join_list = [
                 "left join produtos p on (ve.id_produto=p.id_produto)",
                 "left join forma_pagamento fp on (ve.id_forma_pagamento=fp.id_forma_pagamento)",
@@ -155,6 +158,8 @@ class Venda(Executa):
                     'e.razao_social', 
                     'fp.descricao as descricao_forma_pagamento', 
                     've.valor', 
+                    've.desconto',
+                    've.desconto_unidade',
                     've.quantidade', 
                     've.data_venda', 
                     've.hora_venda'

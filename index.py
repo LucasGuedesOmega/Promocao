@@ -1,5 +1,5 @@
 # -*- coding: UTF-8 -*-
-from flask import Flask, request, jsonify, abort, current_app, send_from_directory
+from flask import Flask, request, jsonify, abort, current_app, send_from_directory, send_file
 import os
 from flask_cors import CORS
 from functools import wraps
@@ -182,10 +182,10 @@ def login():
 
                             HistoricoLogin().insert_ou_update(dados_historico_list)
 
-                        if usuario['user_app'] == True and dados_dict['tipo'] == 'portal':
+                        if usuario['user_app'] == True and dados_dict['tipo'] == 'portal' and not usuario['admin_posto']:
                             return jsonify({"Error": "não autorizado"}), 400
                         
-                        if usuario['user_app'] == False and dados_dict['tipo'] == 'app':
+                        if usuario['user_app'] == False and dados_dict['tipo'] == 'app' and not usuario['admin_posto']:
                             return jsonify({"Error": "não autorizado"}), 400
 
                         return jsonify({
@@ -231,7 +231,7 @@ def login():
                 return jsonify({"Error": "Informe um usuário."}), 400
 
             elif not dados_dict.get('username') and not dados_dict.get('senha'):
-                    return jsonify({"Error": "Informe um usuário e uma senha."}), 400
+                return jsonify({"Error": "Informe um usuário e uma senha."}), 400
 
 @api.route('/api/v1/empresas-promocao', methods=['GET', 'POST'])
 @autenticar_api
@@ -491,12 +491,25 @@ def exporta_excel(auth):
     if request.method == 'POST':
         dados_list = request.get_json()
 
-        Exportar().exporta_excel(auth, dados_list)
+        Exportar().exporta_excel(dados_list)
 
-        uploads = os.path.join(current_app.root_path, "static\\arquivos_exportar")
+        uploads = os.path.join(current_app.root_path, "static\\arquivos_exportar\\")
         path = 'exportar.xlsx'
-        
-        return send_from_directory(directory=uploads, path=path, as_attachment=True)
+
+        return send_file(uploads+path)
+
+@api.route('/api/v1/exporta-pdf', methods=['POST'])
+@autenticar_api
+def exporta_pdf(auth):
+    if request.method == 'POST':
+        dados_list = request.get_json()
+
+        Exportar().exporta_pdf(auth, dados_list)
+
+        uploads = os.path.join(current_app.root_path, "static\\arquivos_exportar\\")
+        path = 'exportar.pdf'
+
+        return send_file(uploads+path)
 
 @api.route('/api/v1/integracao/posvenda', methods=['GET', 'POST'])
 @autenticar_api
@@ -721,4 +734,4 @@ def page_not_found(error):
     return 'Page not found, 400', 404
 
 if __name__ == '__main__':
-    api.run(debug=True, host='172.19.10.30', port=5080)
+    api.run(debug=True, host='192.168.15.20', port=5080)

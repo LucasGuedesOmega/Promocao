@@ -1,10 +1,26 @@
 # -*- coding: UTF-8 -*-
 from banco.execucoes import Executa
+from geopy.geocoders import Nominatim
 
 class Empresa(Executa):
     def __init__(self):
         super().__init__()
     
+    def get_longitude_latidude(self, rua, numero, cidade, estado):
+        endereco = f"{rua}, {numero}, {cidade}, {estado}"
+
+        geolocator = Nominatim(user_agent='my_api')
+
+        location = geolocator.geocode(endereco)
+
+        if location:
+            latitude = location.latitude
+            longitude = location.longitude
+
+            return latitude, longitude
+        else:
+            return None, None
+
     def insert_ou_update(self, dados_list):
 
         try:
@@ -21,7 +37,9 @@ class Empresa(Executa):
                         ["id_empresa={}".format(dados_dict['id_empresa'])]
                     )
 
-                if empresa_list:
+                latitude, longitude = self.get_longitude_latidude(dados_dict['endereco'], dados_dict['numero'], dados_dict['cidade'], dados_dict['uf'])
+                print(longitude, latitude)
+                if empresa_list and latitude and longitude:
                     self.update('empresa',
                         [
                             "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
@@ -31,13 +49,16 @@ class Empresa(Executa):
                             "endereco='{}'".format(dados_dict['endereco']),
                             "numero={}".format(dados_dict['numero']),
                             "bairro='{}'".format(dados_dict['bairro']),
-                            "uf='{}'".format(dados_dict['uf']),
+                            "uf='{}'".format(dados_dict['uf'].upper()),
+                            "cidade='{}'".format(dados_dict['cidade']),
                             "status={}".format(dados_dict['status']),
                             "token_integracao='{}'".format(dados_dict['token_integracao']),
+                            "latitude={}".format(latitude),
+                            "longitude={}".format(longitude),
                         ],
                         ["id_empresa={}".format(dados_dict['id_empresa'])]
                     )
-                else:
+                elif latitude and longitude:
                     self.insert('empresa', 
                         [
                             "id_grupo_empresa",
@@ -48,8 +69,11 @@ class Empresa(Executa):
                             'numero',
                             'bairro',
                             'uf',
+                            'cidade',
                             'status',
                             'token_integracao',
+                            'latitude',
+                            'longitude',
                         ],
                         [
                             "{}".format(dados_dict['id_grupo_empresa']),
@@ -59,11 +83,16 @@ class Empresa(Executa):
                             "'{}'".format(dados_dict['endereco']),
                             "{}".format(dados_dict['numero']),
                             "'{}'".format(dados_dict['bairro']),
-                            "'{}'".format(dados_dict['uf']),
+                            "'{}'".format(dados_dict['uf'].upper()),
+                            "'{}'".format(dados_dict['cidade'].upper()),
                             "{}".format(dados_dict['status']),
                             "'{}'".format(dados_dict['token_integracao']),  
+                            "{}".format(latitude),  
+                            "{}".format(longitude),  
                         ]
                     )
+                elif not latitude and not longitude:
+                    return {"error": "O Endereço informado está incorreto"}, 400
 
             return {"Sucesso": "Empresa inserida ou alterada com sucesso."}
 
