@@ -57,7 +57,6 @@ class Cliente(Executa):
                                 "e_mail",
                                 "telefone",
                                 "status",
-                                "id_empresa",
                                 "id_grupo_empresa",
                                 'id_usuario'
                             ],
@@ -67,7 +66,6 @@ class Cliente(Executa):
                                 "'{}'".format(dados_dict['e_mail']),
                                 "'{}'".format(dados_dict['telefone']),
                                 "{}".format(dados_dict['status']),
-                                "{}".format(dados_dict['id_empresa']),
                                 "{}".format(dados_dict['id_grupo_empresa']),
                                 "{}".format(dados_dict['id_usuario'])
                             ]   

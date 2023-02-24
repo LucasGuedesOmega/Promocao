@@ -39,12 +39,12 @@ class Usuario(Executa):
                         ],
                         where_list  
                     )
-            
-                if not dados_dict['id_empresa']:
-                    dados_dict['id_empresa'] = 'null'
 
-                if not dados_dict['id_grupo_empresa']:
+                if not dados_dict.get('id_grupo_empresa'):
                     dados_dict['id_grupo_empresa'] = 'null'
+
+                if not dados_dict.get('id_grupo_usuario'):
+                    dados_dict['id_grupo_usuario'] = 'null'
 
                 if usuarios_list:
                     self.update('usuarios',
@@ -56,7 +56,6 @@ class Usuario(Executa):
                             "user_app={}".format(dados_dict['user_app']),
                             "admin_posto={}".format(dados_dict['admin_posto']),
                             "id_grupo_usuario={}".format(dados_dict['id_grupo_usuario']),
-                            "id_empresa={}".format(dados_dict['id_empresa']),
                             "id_grupo_empresa={}".format(dados_dict['id_grupo_empresa']),
                         ],
                         where_list  
@@ -74,7 +73,6 @@ class Usuario(Executa):
                                 "user_admin",
                                 "user_app",
                                 "admin_posto",
-                                "id_empresa",
                                 "id_grupo_empresa",
                                 "id_grupo_usuario",
                             ],
@@ -85,7 +83,6 @@ class Usuario(Executa):
                                 "{}".format(dados_dict['user_admin']),
                                 "{}".format(dados_dict['user_app']),
                                 "{}".format(dados_dict['admin_posto']),
-                                "{}".format(dados_dict['id_empresa']),
                                 "{}".format(dados_dict['id_grupo_empresa']),
                                 "{}".format(dados_dict['id_grupo_usuario']),
                             ]   

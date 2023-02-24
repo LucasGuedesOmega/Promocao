@@ -116,7 +116,6 @@ def login():
                 [
                     'id_usuario', 
                     'user_admin', 
-                    'id_empresa', 
                     'user_app', 
                     'id_grupo_empresa', 
                     'id_grupo_usuario',
@@ -132,13 +131,11 @@ def login():
                     confirma_email_list = Usuario().select('confirma_email', ['*'], [f"id_usuario={usuario['id_usuario']}"])
 
                     if not confirma_email_list and not usuario['user_admin']:
-                        empresa = Empresa().select('empresa', ['id_grupo_empresa'], [f"id_empresa={usuario['id_empresa']}"], registro_unico=True)
                         payload = None
                         if dados_dict['tipo'] == "app":
                             payload = {
                                 "id_usuario": int(usuario['id_usuario']),
-                                "id_empresa": int(usuario['id_empresa']),
-                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "id_grupo_empresa": int(usuario['id_grupo_empresa']),
                                 "iat": (time.mktime(datetime.datetime.now().timetuple())),
                                 "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(days=30)).timetuple())),
                                 "admin": usuario['user_admin'],
@@ -147,16 +144,14 @@ def login():
                         elif dados_dict['tipo'] == 'consumidor':
                             payload = {
                                 "id_usuario": int(usuario['id_usuario']),
-                                "id_empresa": int(usuario['id_empresa']),
-                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "id_grupo_empresa": int(usuario['id_grupo_empresa']),
                                 "admin": usuario['user_admin'],
                                 "admin_posto": usuario['admin_posto']
                             }
                         else:
                             payload = {
                                 "id_usuario": int(usuario['id_usuario']),
-                                "id_empresa": int(usuario['id_empresa']),
-                                "id_grupo_empresa": int(empresa['id_grupo_empresa']),
+                                "id_grupo_empresa": int(usuario['id_grupo_empresa']),
                                 "iat": (time.mktime(datetime.datetime.now().timetuple())),
                                 "exp": (time.mktime((datetime.datetime.now() + datetime.timedelta(minutes=30)).timetuple())),
                                 "admin": usuario['user_admin'],
@@ -204,9 +199,6 @@ def login():
 
                         if usuario.get('id_grupo_empresa'):
                             payload['id_grupo_empresa'] = usuario['id_grupo_empresa']
-                        
-                        if usuario.get('id_empresa'):
-                            payload['id_empresa'] = usuario['id_empresa']
 
                         if usuario.get('id_grupo_usuario'):
                             payload['id_grupo_usuario'] = usuario['id_grupo_usuario']
@@ -734,4 +726,4 @@ def page_not_found(error):
     return 'Page not found, 400', 404
 
 if __name__ == '__main__':
-    api.run(debug=True, host='192.168.15.20', port=5080)
+    api.run(debug=True, host='172.19.10.30', port=5080)

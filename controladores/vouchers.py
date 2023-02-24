@@ -31,7 +31,7 @@ class Voucher(Executa):
                 if not expira_voucher and produto_dict and verifica_empresa and verifica_datas and promocao_dict['status'] and formas_pagamento_dict:
 
                     cliente_dict = self.select('clientes', ['*'], [f"id_usuario={voucher_dict['id_usuario']}"], registro_unico=True)
-          
+                    print(cliente_dict)
                     self.insert_historico(dados_dict, calculo_dict, voucher_dict, cliente_dict)
 
                     placa = None
@@ -203,7 +203,7 @@ class Voucher(Executa):
                 dados_dict['usado'] = 'false'
             else: 
                 dados_dict['usado'] = 'true'
-
+                
             if voucher_dict:
                 self.update('voucher', 
                     [
@@ -242,4 +242,4 @@ class Voucher(Executa):
             return {"Voucher": codigo_voucher}
 
         except Exception as e:
-            return {"Error": "Parametros invalidos."}
+            return {"Error": f"Parametros invalidos. {e}"}

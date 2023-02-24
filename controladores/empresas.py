@@ -38,7 +38,7 @@ class Empresa(Executa):
                     )
 
                 latitude, longitude = self.get_longitude_latidude(dados_dict['endereco'], dados_dict['numero'], dados_dict['cidade'], dados_dict['uf'])
-                print(longitude, latitude)
+
                 if empresa_list and latitude and longitude:
                     self.update('empresa',
                         [
