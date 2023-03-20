@@ -28,14 +28,14 @@ class Funcionario(Executa):
                 elif dados_dict.get('cpf') and not dados_dict.get('id_funcionario'):
                     where_list.append("cpf='{}'".format(dados_dict['cpf']))
 
-                cliente_list = self.select('funcionario', 
+                funcionario_list = self.select('funcionario', 
                     [
                         "id_funcionario"
                     ],
                     where_list  
                 )
 
-                if cliente_list:
+                if funcionario_list:
                 
                     self.update('funcionario',
                         [
@@ -44,6 +44,7 @@ class Funcionario(Executa):
                             "telefone='{}'".format(dados_dict['telefone']),
                             "status={}".format(dados_dict['status']),
                             "id_usuario={}".format(dados_dict['id_usuario']),
+                            "id_empresa={}".format(dados_dict['id_empresa']),
                             "cpf='{}'".format(dados_dict['cpf']),
                         ],
                         where_list  
@@ -76,7 +77,6 @@ class Funcionario(Executa):
             
                     else:
                         return {"Error": f"Funcionário já cadastrado"}, 400
-                    
                     
             return {"Sucesso": "Funcionario cadastrado com sucesso!"}, 200
 
